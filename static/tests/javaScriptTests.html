@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Custom D3 Tests</title>
+  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.18.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="https://code.jquery.com/qunit/qunit-1.18.0.js"></script>
+  <script src="../js/bradri.js" charset="utf-8"></script>
+  <script>
+    QUnit.module("Unit tests", {
+      setup: function() {
+        // vars to be used by all tests
+        this.testNodes = [
+        {id: 'a', spouse:['b'], mother: '', father: ''},
+        {id: 'b', spouse:['a'], mother: '', father: ''},
+        {id: 'c', spouse:['d'], mother: '', father: ''},
+        {id: 'd', spouse:['c'], mother: '', father: ''},
+        {id: 'e', spouse:['f'], mother: '', father: ''},
+        {id: 'f', spouse:['e'], mother: 'a', father: 'b'},
+        {id: 'g', spouse:[], mother: 'a', father: 'b'},
+        {id: 'h', spouse:['i'], mother: 'a', father: 'b'},
+        {id: 'i', spouse:['h'], mother: 'c', father: 'd'},
+        {id: 'j', spouse:['k'], mother: 'c', father: 'd'},
+        {id: 'k', spouse:['j'], mother: '', father: ''},
+        {id: 'l', spouse:['m'], mother: 'e', father: 'f'},
+        {id: 'm', spouse:['l'], mother: 'j', father: 'k'},
+        {id: 'n', spouse:[], mother: 'l', father: 'm'}
+        ];
+
+        this.testLinks = [
+        {source: 0, target: 1},
+        {source: 2, target: 3},
+        {source: 4, target: 5},
+        {source: 5, target: 0},
+        {source: 5, target: 1},
+        {source: 6, target: 0},
+        {source: 6, target: 1},
+        {source: 7, target: 0},
+        {source: 7, target: 1},
+        {source: 7, target: 8},
+        {source: 8, target: 2},
+        {source: 8, target: 3},
+        {source: 9, target: 2},
+        {source: 9, target: 3},
+        {source: 9, target: 10},
+        {source: 11, target: 4},
+        {source: 11, target: 5},
+        {source: 11, target: 12},
+        {source: 12, target: 9},
+        {source: 12, target: 10},
+        {source: 13, target: 11},
+        {source: 13, target: 12}
+        ];      
+      }});
+
+    QUnit.test( "Unit testing of custom D3 code", function( assert ) {
+    
+    // test buildLinks()
+    assert.equal(JSON.stringify(buildLinks(this.testNodes)), 
+      JSON.stringify(this.testLinks), 
+      "Should parse an array of node objects into a link array for D3");
+
+    // test linkExists()
+    var links = [];
+    assert.equal(linkExists({"source":5,"target":0}, this.testLinks), 
+      true, 
+      "Should return true if given link already exists");
+
+    // test linkExists()
+    var links = [];
+    assert.equal(linkExists({"source":0,"target":5}, this.testLinks), 
+      true, 
+      "Should return true if given link already exists in opposite direction");
+
+    // test linkExists()
+    assert.equal(linkExists({"source":5,"target":18}, this.testLinks),
+      false, 
+      "Should return false if given link doesn't exist");
+
+    // test findNodeIndexById
+    assert.equal(findNodeIndexById('h', this.testNodes),
+      7, 
+      "Should return the correct node index given its id");
+   
+    // findNodeById(id, nodes)
+    assert.equal(JSON.stringify(findNodeById('e', this.testNodes)),
+      JSON.stringify({id: 'e', spouse:['f'], mother: '', father: ''}), 
+      "Should return node e given its id");
+
+    // test areSiblings()
+    assert.equal(areSiblings(findNodeById('f', this.testNodes),findNodeById('g', this.testNodes)),
+      1, 
+      "Should deduce that nodes f & g are siblings");
+
+     //test areSiblings()
+    assert.equal(areSiblings(findNodeById('e', this.testNodes),findNodeById('k', this.testNodes)), -1, "Should deduce that nodes e & k are not siblings");
+    
+    // test makeLinkFromNodeIds(sourceId, targetId, nodes)
+    assert.equal((makeLinkFromNodeIds('a', 'b', this.testNodes)).toString(), {"source": 0, "target": 1}.toString(), 
+      "Should create a valid link object");
+
+    // test addLinkFromIds(sourceId, targetId, nodes, links)
+    assert.ok(addLinkFromIds('a','n', this.testNodes, this.testLinks), 'Should add a unique link without error');
+
+    // test addLinkFromIds(sourceId, targetId, nodes, links)
+    assert.ok(!addLinkFromIds('a','n', this.testNodes, this.testLinks), 'Should not add a unique link which is already present');
+
+    });
+  </script>
+</body>
+</html>
