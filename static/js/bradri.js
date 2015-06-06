@@ -15,22 +15,30 @@ var message = function(s){
 
 // return node index with a given id
 var findNodeIndexById = function(id, nodes){
+	var result = false;
+
 	var length = nodes.length || 0;
 	for (var index=0; index < length; index++){
 		if (nodes[index].id === id){
-			return index;
+			result = index;
+			break;
 		};		
 	};
+	return result;
 };
 
 // return node with a given id
+// return false if not found
 var findNodeById = function(id, nodes){
-	var length = nodes.length || 0;
-	for (var index=0; index < length; index++){
-		if (nodes[index].id === id){
-			return nodes[index];
-		};		
+	var result = false;
+	
+	for (var i = 0; i < nodes.length; i++) {
+		if (nodes[i].id === id){
+			result = nodes[i];
+			break;
+		};
 	};
+	return result;
 };
 
 // return the node id given the nodes index in the node array
@@ -146,13 +154,14 @@ var getparents = function(node, nodes){
 	return result;
 };
 
+// TODO modifys to work with node obj or string id 
 // TODO write test
 var getSpouses = function(node, nodes){
 	// return all spouses
 	var result = [];
-	var spouseList = node.spouse;
+	var spouseList = node.spouse; // spouses is an array of id's
 	var length = spouseList.length;
-
+	
 	function gs(i){
 		var sp = findNodeById(spouseList[i], nodes);
 		if (sp) result.push(sp);
@@ -161,7 +170,6 @@ var getSpouses = function(node, nodes){
 	for (var i = 0; i < length; i++){
 		gs(i);
 	};
-	
 	return result;
 };
 
@@ -186,58 +194,70 @@ var getSiblings = function(node, nodes){
 };
 
 // TODO write test
+// return the children of a node
+var getChildren = function (node, nodes){
+	var result = [];
+	for (var i = 0; i < nodes.length; i++) {
+		if(nodes[i].mother === node.id){
+			result.push(nodes[i])
+		};
+		if(nodes[i].father === node.id){
+			result.push(nodes[i])
+		};
+	};
+	return result;
+};
+
+// TODO write test
+// return the immediate family of the given node
 var getFamily = function (node, nodes){
 		var parents = getparents(node, nodes);
 		var spouses = getSpouses(node, nodes);
 		var siblings = getSiblings(node, nodes);
-
-		result = parents.concat(spouses, siblings);
+		var children = getChildren(node, nodes);
+		console.log('children of ', node.id, 'parents',parents,'spouses',spouses,'siblings',siblings,'children',children);
+		// returns an array of nodes
+		var result = parents.concat(spouses, siblings, children);
 		return result;
 	};
 
 // return a sub-network of n nodes around a source node
 var buildNSubNetOnId = function(id, numNodesToFetch, nodes){
-	var result = []; // array of nodes ids
+	var result = []; // array of links
 	var queue = []; // node ids to be parsed
-	var seed = findNodeIndexById(id, nodes)
+	var seed = findNodeById(id, nodes)
+	var family = [];
 	
 	result.push(seed);
 	queue.push(seed);
 
-	function isPresent(element, index, array){
-		// checks for the element in the result
-		var present = element;
-
-		for (var i = 0; i < result.length; i++){
-			if (element.id === result[i].id){
-				present = true;
-			};
-		};
-		return present;
-	};
-
+	// use this to check for nodes already present
+	//findNodeById = function(id, nodes){
+	
 	var storeFamily = function (family){
 		// store only family members not already in result to 
 		// result and queue
-		var present = family.some(isPresent);
-
-		if (present != true){
-			result.push(present);
-			queue.push(present);
-		};
+		// TODO integrate Underscore.js difference operation
+		for (var i = family.length - 1; i >= 0; i--) {
+			if (findNodeById(family[i].id, result) === false){
+				result.push(family[i]);
+				queue.push(family[i]);
+			};
+		};		
 	};
 
 	var parseQueue = function (queue){
 		// retrieve famlies and add 
 		while ( (queue.length != 0) && (result.length < numNodesToFetch) ){
 			var node = queue.pop();
-			family = getFamily(node);
+			family = getFamily(node, nodes);
 			storeFamily(family);
 		};		
 
 	};
 
 	parseQueue(queue); // let get going
-	return Result;
+	console.log('result -> ', result);
+	return result;
 	
 };

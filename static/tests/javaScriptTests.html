@@ -109,6 +109,9 @@
     // test addLinkFromIds(sourceId, targetId, nodes, links)
     assert.ok(!addLinkFromIds('a','n', this.testNodes, this.testLinks), 'Should not add a unique link which is already present');
 
+    // test addLinkFromIds(sourceId, targetId, nodes, links)
+    assert.ok(buildNSubNetOnId('a', 6, this.testNodes), 'Should extract a subset of n nodes around the id given');
+
     });
   </script>
 </body>
