@@ -9,6 +9,44 @@
                 (n)
 */
 
+// create a list of the nodes in the subnet
+var makeSubNodesArr = function(visited, propname, nodes){
+  var result = [],
+      searchPair = {},
+      obj;
+  
+  for (var i = 0; i < visited.length; i++) {
+    searchPair[propname] = visited[i];
+    obj = _.findWhere(nodes, searchPair)
+    // remove properties added by d3, preserve use defined properties
+    result.push(_.omit(obj, ['index', 'px', 'py', 'x', 'y'])); 
+
+  };
+  return result;
+};
+
+// create the array of links between nodes in the subNodesArr
+var makeSubLinksArr = function(nodes, propname, subLinks){
+  var result = [],
+      nodeIndex = {},
+      obj;
+
+  // {'a': 0, 'b': 1, 'c': '2' etc}
+  // the position of each propname in the arr
+  for (var i = 0; i < nodes.length; i++) {
+    nodeIndex[nodes[i][propname]] = i;
+  };
+
+  // create a new subLinksArr based on the subNodeArr
+  for (var i = 0; i < subLinks.length; i++) {
+    obj = subLinks[i];
+    obj.source = nodeIndex[obj.source[propname]];
+    obj.target = nodeIndex[obj.target[propname]];
+    result.push(obj);
+  };
+
+  return result
+};
 
 // return a sub-network of n nodes around a source node
 var graphSub = function(datum, index, propname, distanceToFetch, links, nodes){
@@ -55,9 +93,8 @@ var graphSub = function(datum, index, propname, distanceToFetch, links, nodes){
   };
 
   console.log(visited);
-
-  //return {
-  //  nodes: resultNodes,
-  //  links: resultLinks
-  //}; 
+  console.log(subLinks);
+  console.log(makeSubNodesArr(visited, propname, nodes));
+  var nn = makeSubNodesArr(visited, propname, nodes);
+  console.log(makeSubLinksArr(nn, propname, subLinks));
 };
