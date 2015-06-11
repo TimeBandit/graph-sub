@@ -109,8 +109,30 @@
     // test addLinkFromIds(sourceId, targetId, nodes, links)
     assert.ok(!addLinkFromIds('a','n', this.testNodes, this.testLinks), 'Should not add a unique link which is already present');
 
-    // test addLinkFromIds(sourceId, targetId, nodes, links)
-    assert.ok(buildNSubNetOnId('a', 6, this.testNodes), 'Should extract a subset of n nodes around the id given');
+    // test getParents(node, nodes)
+    assert.equal(getParents({id: 'a', spouse:['b'], mother: '', father: ''}, this.testNodes).toString(), [].toString(), 'Should return parents of node a');
+    
+    var result = [].concat(this.testNodes[0], this.testNodes[1]).toString()
+    assert.equal(getParents({id: 'f', spouse:['e'], mother: 'a', father: 'b'}, 
+      this.testNodes).toString(), 
+      result, 
+      'Should return parents of node f');
+
+    var result = [this.testNodes[1]]
+    // test getSpouses(node, nodes)
+    assert.equal(getSpouses(this.testNodes[0], this.testNodes), result, 'Should return the spouse of a');
+
+    // test getSpouses(node, nodes)
+    //assert.equal(getSpouses('n', this.testNodes), [], 'Should return the spouse of n');
+
+    // test getSiblings(node, nodes)
+    //assert.equal(getSiblings(node, this.testNodes), expected, message);
+
+    // test getChildren(node, nodes)
+    //assert.equal(getChildren(node, this.testNodes), expected, message);
+
+    // test buildNSubNetOnId(id, #ofNodes, nodes)
+    //assert.ok(buildNSubNetOnId('a', 6, this.testNodes), 'Should extract a subset of n nodes around the id given');
 
     });
   </script>

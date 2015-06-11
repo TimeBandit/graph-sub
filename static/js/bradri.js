@@ -30,7 +30,7 @@ var findNodeIndexById = function(id, nodes){
 // return node with a given id
 // return false if not found
 var findNodeById = function(id, nodes){
-	var result = false;
+	var result = false; // set default
 	
 	for (var i = 0; i < nodes.length; i++) {
 		if (nodes[i].id === id){
@@ -141,16 +141,14 @@ var areSiblings = function (node1, node2){
 	};	
 };
 
-// TODO write test
-var getparents = function(node, nodes){
-	// return the parents
+// Return the parents
+var getParents = function(node, nodes){
 	var result = [];
 	var mother = findNodeById(node.mother, nodes);
-	var father = findNodeById(node.farther, nodes);
+	var father = findNodeById(node.father, nodes);
 	
 	if (mother) result.push(mother);
 	if (father) result.push(father);
-	
 	return result;
 };
 
@@ -160,6 +158,7 @@ var getSpouses = function(node, nodes){
 	// return all spouses
 	var result = [];
 	var spouseList = node.spouse; // spouses is an array of id's
+	console.log(node, spouseList);
 	var length = spouseList.length;
 	
 	function gs(i){
@@ -211,11 +210,11 @@ var getChildren = function (node, nodes){
 // TODO write test
 // return the immediate family of the given node
 var getFamily = function (node, nodes){
-		var parents = getparents(node, nodes);
+		var parents = getParents(node, nodes);
 		var spouses = getSpouses(node, nodes);
 		var siblings = getSiblings(node, nodes);
 		var children = getChildren(node, nodes);
-		console.log('children of ', node.id, 'parents',parents,'spouses',spouses,'siblings',siblings,'children',children);
+		console.log('family of ', node.id, 'parents',parents,'spouses',spouses,'siblings',siblings,'children',children);
 		// returns an array of nodes
 		var result = parents.concat(spouses, siblings, children);
 		return result;
