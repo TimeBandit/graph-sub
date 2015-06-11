@@ -9,53 +9,54 @@
   <div id="qunit"></div>
   <div id="qunit-fixture"></div>
   <script src="https://code.jquery.com/qunit/qunit-1.18.0.js"></script>
-  <script src="../js/bradri.js" charset="utf-8"></script>
+  <script src="../js/graphSub.js" charset="utf-8"></script>
   <script>
     QUnit.module("Unit tests", {
       setup: function() {
-        // vars to be used by all tests
-        this.testNodes = [
-        {id: 'a', spouse:['b'], mother: '', father: ''},
-        {id: 'b', spouse:['a'], mother: '', father: ''},
-        {id: 'c', spouse:['d'], mother: '', father: ''},
-        {id: 'd', spouse:['c'], mother: '', father: ''},
-        {id: 'e', spouse:['f'], mother: '', father: ''},
-        {id: 'f', spouse:['e'], mother: 'a', father: 'b'},
-        {id: 'g', spouse:[], mother: 'a', father: 'b'},
-        {id: 'h', spouse:['i'], mother: 'a', father: 'b'},
-        {id: 'i', spouse:['h'], mother: 'c', father: 'd'},
-        {id: 'j', spouse:['k'], mother: 'c', father: 'd'},
-        {id: 'k', spouse:['j'], mother: '', father: ''},
-        {id: 'l', spouse:['m'], mother: 'e', father: 'f'},
-        {id: 'm', spouse:['l'], mother: 'j', father: 'k'},
-        {id: 'n', spouse:[], mother: 'l', father: 'm'}
-        ];
+      // vars to be used by all tests
+      this.testNodes = [
+      {"name":"a"},
+      {"name":"b"},
+      {"name":"c"},
+      {"name":"d"},
+      {"name":"e"},
+      {"name":"f"},
+      {"name":"g"},
+      {"name":"h"},
+      {"name":"i"},
+      {"name":"j"},
+      {"name":"k"},
+      {"name":"l"},
+      {"name":"m"},
+      {"name":"n"}
+      ];
 
-        this.testLinks = [
-        {source: 0, target: 1},
-        {source: 2, target: 3},
-        {source: 4, target: 5},
-        {source: 5, target: 0},
-        {source: 5, target: 1},
-        {source: 6, target: 0},
-        {source: 6, target: 1},
-        {source: 7, target: 0},
-        {source: 7, target: 1},
-        {source: 7, target: 8},
-        {source: 8, target: 2},
-        {source: 8, target: 3},
-        {source: 9, target: 2},
-        {source: 9, target: 3},
-        {source: 9, target: 10},
-        {source: 11, target: 4},
-        {source: 11, target: 5},
-        {source: 11, target: 12},
-        {source: 12, target: 9},
-        {source: 12, target: 10},
-        {source: 13, target: 11},
-        {source: 13, target: 12}
-        ];      
-      }});
+      this.testLinks = [
+      {"source":0,"target":1,"value":1},
+      {"source":2,"target":3,"value":1},
+      {"source":4,"target":5,"value":1},
+      {"source":7,"target":8,"value":1},
+      {"source":9,"target":10,"value":1},
+      {"source":11,"target":12,"value":1},
+      {"source":0,"target":5,"value":1},
+      {"source":1,"target":5,"value":1},
+      {"source":0,"target":6,"value":1},
+      {"source":1,"target":6,"value":1},
+      {"source":0,"target":7,"value":1},
+      {"source":1,"target":7,"value":1},
+      {"source":2,"target":8,"value":1},
+      {"source":3,"target":8,"value":1},
+      {"source":2,"target":9,"value":1},
+      {"source":3,"target":9,"value":1},
+      {"source":4,"target":11,"value":1},
+      {"source":5,"target":11,"value":1},
+      {"source":9,"target":12,"value":1},
+      {"source":10,"target":12,"value":1},
+      {"source":11,"target":13,"value":1},
+      {"source":12,"target":13,"value":1}
+      ];      
+    }
+  });
 
     QUnit.test( "Unit testing of custom D3 code", function( assert ) {
     
