@@ -65,9 +65,9 @@
     function test(d, i){
         console.log('node id->', d.name, i);
         //console.log(graph.nodes);
-        var n = 5;
-        var res = buildNSubNetOnId(i, n, graph.links, graph.nodes);
-        console.log('subnet of ', n, ' ', res);
+        var n = 20;
+        var res = graphSub(d, i, "name", n, graph.links, graph.nodes);
+        
     };
     var node = gnodes.append("circle")
         .attr("class", "node")
