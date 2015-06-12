@@ -14,27 +14,27 @@ var makeSubNodesArr = function(visited, propname, nodes){
   var result = [],
       searchPair = {},
       obj;
-  
   for (var i = 0; i < visited.length; i++) {
     searchPair[propname] = visited[i];
     obj = _.findWhere(nodes, searchPair)
     // remove properties added by d3, preserve use defined properties
-    result.push(_.omit(obj, ['index', 'px', 'py', 'x', 'y'])); 
-
+    obj = _.omit(obj, ['index', 'fixed', 'weight', 'px', 'py', 'x', 'y'])
+    result.push(obj);
+    console.log('### ', result);
   };
   return result;
 };
 
 // create the array of links between nodes in the subNodesArr
-var makeSubLinksArr = function(nodes, propname, subLinks){
+var makeSubLinksArr = function(subNodes, propname, subLinks){
   var result = [],
       nodeIndex = {},
       obj;
 
   // {'a': 0, 'b': 1, 'c': '2' etc}
   // the position of each propname in the arr
-  for (var i = 0; i < nodes.length; i++) {
-    nodeIndex[nodes[i][propname]] = i;
+  for (var i = 0; i < subNodes.length; i++) {
+    nodeIndex[subNodes[i][propname]] = i;
   };
 
   // create a new subLinksArr based on the subNodeArr
@@ -49,7 +49,7 @@ var makeSubLinksArr = function(nodes, propname, subLinks){
 };
 
 // return a sub-network of n nodes around a source node
-var graphSub = function(datum, index, propname, distanceToFetch, links, nodes){
+var graphSub = function(datum, propname, distanceToFetch, links, nodes){
   // this function looks at the distance from the source nodes
   // it expands outwards, distance times. this is equivelent
   // to 'distance' in graph theory.
@@ -63,8 +63,8 @@ var graphSub = function(datum, index, propname, distanceToFetch, links, nodes){
       toVisit = [],
       visited = [],
       subLinks = [],
-      subNodes = [],
-      current;
+      current,
+      result = {};
 
   toVisit.push(datum[propname]); // initialize
   visited.push(datum[propname]); // initialize
@@ -92,9 +92,10 @@ var graphSub = function(datum, index, propname, distanceToFetch, links, nodes){
     count = count + 1;
   };
 
-  console.log(visited);
-  console.log(subLinks);
-  console.log(makeSubNodesArr(visited, propname, nodes));
-  var nn = makeSubNodesArr(visited, propname, nodes);
-  console.log(makeSubLinksArr(nn, propname, subLinks));
+  console.log('i just vistited-> ', visited);
+  result.nodes = makeSubNodesArr(visited, propname, nodes);
+  result.links = makeSubLinksArr(result.nodes, propname, subLinks)
+  console.log('final ', JSON.stringify(result));
+
+  return result;
 };

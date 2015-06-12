@@ -2,16 +2,17 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Custom D3 Tests</title>
+  <title>graphSub Unit Tests</title>
   <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.18.0.css">
 </head>
 <body>
   <div id="qunit"></div>
   <div id="qunit-fixture"></div>
   <script src="https://code.jquery.com/qunit/qunit-1.18.0.js"></script>
+  <script src="../js/underscore-min.js"></script>
   <script src="../js/graphSub.js" charset="utf-8"></script>
   <script>
-    QUnit.module("Unit tests", {
+    QUnit.module("graphSub function Unit Test", {
       setup: function() {
       // vars to be used by all tests
       this.testNodes = [
@@ -58,82 +59,42 @@
     }
   });
 
-    QUnit.test( "Unit testing of custom D3 code", function( assert ) {
+    QUnit.test( "# of generations is 0", function( assert ) {
+    //var fixture = $( "#qunit-fixture" );
+    var n = 0;
+    assert.deepEqual(graphSub(this.testNodes[0], "name", n, this.testLinks, this.testNodes), 
+        {nodes: [{'name': 'a'}], links: []}, 
+        'sub network from a when n = 0');
+
+    assert.deepEqual(graphSub(this.testNodes[1], "name", n, this.testLinks, this.testNodes), 
+        {nodes: [{'name': 'b'}], links: []}, 
+        'sub network from b when n = 0');
+
+    assert.deepEqual(graphSub(this.testNodes[2], "name", n, this.testLinks, this.testNodes), 
+        {nodes: [{'name': 'c'}], links: []}, 
+        'sub network from c when n = 0');
     
-    // test buildLinks()
-    assert.equal(JSON.stringify(buildLinks(this.testNodes)), 
-      JSON.stringify(this.testLinks), 
-      "Should parse an array of node objects into a link array for D3");
+    });
+    QUnit.test( "# of generations is 1", function( assert ) {
+    //var fixture = $( "#qunit-fixture" );
+    var n = 1;
+    assert.deepEqual(graphSub(this.testNodes[0], "name", n, this.testLinks, this.testNodes), 
+        {"nodes":[{"name":"h"},{"name":"g"},{"name":"f"},{"name":"b"},{"name":"a"}],"links":[{"source":4,"target":0,"value":1},{"source":4,"target":1,"value":1},{"source":4,"target":2,"value":1},{"source":4,"target":3,"value":1}]}, 
+        'sub network from a when n = 1');
+/*
+    assert.deepEqual(graphSub(this.testNodes[1], "name", n, this.testLinks, this.testNodes), 
+        {nodes: [{'name': 'b'}], links: []}, 
+        'sub network from b when n = 1');
 
-    // test linkExists()
-    var links = [];
-    assert.equal(linkExists({"source":5,"target":0}, this.testLinks), 
-      true, 
-      "Should return true if given link already exists");
+    assert.deepEqual(graphSub(this.testNodes[2], "name", n, this.testLinks, this.testNodes), 
+        {nodes: [{'name': 'c'}], links: []}, 
+        'sub network from c when n = 1');
+    // assert template
+    //assert.deepEqual(actual, expected, message);
 
-    // test linkExists()
-    var links = [];
-    assert.equal(linkExists({"source":0,"target":5}, this.testLinks), 
-      true, 
-      "Should return true if given link already exists in opposite direction");
-
-    // test linkExists()
-    assert.equal(linkExists({"source":5,"target":18}, this.testLinks),
-      false, 
-      "Should return false if given link doesn't exist");
-
-    // test findNodeIndexById
-    assert.equal(findNodeIndexById('h', this.testNodes),
-      7, 
-      "Should return the correct node index given its id");
-   
-    // findNodeById(id, nodes)
-    assert.equal(JSON.stringify(findNodeById('e', this.testNodes)),
-      JSON.stringify({id: 'e', spouse:['f'], mother: '', father: ''}), 
-      "Should return node e given its id");
-
-    // test areSiblings()
-    assert.equal(areSiblings(findNodeById('f', this.testNodes),findNodeById('g', this.testNodes)),
-      1, 
-      "Should deduce that nodes f & g are siblings");
-
-     //test areSiblings()
-    assert.equal(areSiblings(findNodeById('e', this.testNodes),findNodeById('k', this.testNodes)), -1, "Should deduce that nodes e & k are not siblings");
-    
-    // test makeLinkFromNodeIds(sourceId, targetId, nodes)
-    assert.equal((makeLinkFromNodeIds('a', 'b', this.testNodes)).toString(), {"source": 0, "target": 1}.toString(), 
-      "Should create a valid link object");
-
-    // test addLinkFromIds(sourceId, targetId, nodes, links)
-    assert.ok(addLinkFromIds('a','n', this.testNodes, this.testLinks), 'Should add a unique link without error');
-
-    // test addLinkFromIds(sourceId, targetId, nodes, links)
-    assert.ok(!addLinkFromIds('a','n', this.testNodes, this.testLinks), 'Should not add a unique link which is already present');
-
-    // test getParents(node, nodes)
-    assert.equal(getParents({id: 'a', spouse:['b'], mother: '', father: ''}, this.testNodes).toString(), [].toString(), 'Should return parents of node a');
-    
-    var result = [].concat(this.testNodes[0], this.testNodes[1]).toString()
-    assert.equal(getParents({id: 'f', spouse:['e'], mother: 'a', father: 'b'}, 
-      this.testNodes).toString(), 
-      result, 
-      'Should return parents of node f');
-
-    var result = [this.testNodes[1]]
-    // test getSpouses(node, nodes)
-    assert.equal(getSpouses(this.testNodes[0], this.testNodes), result, 'Should return the spouse of a');
-
-    // test getSpouses(node, nodes)
-    //assert.equal(getSpouses('n', this.testNodes), [], 'Should return the spouse of n');
-
-    // test getSiblings(node, nodes)
-    //assert.equal(getSiblings(node, this.testNodes), expected, message);
-
-    // test getChildren(node, nodes)
-    //assert.equal(getChildren(node, this.testNodes), expected, message);
-
-    // test buildNSubNetOnId(id, #ofNodes, nodes)
-    //assert.ok(buildNSubNetOnId('a', 6, this.testNodes), 'Should extract a subset of n nodes around the id given');
+*/    
+    // ok template
+    assert.ok('hi', 'hi');
 
     });
   </script>

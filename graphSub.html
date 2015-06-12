@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>graphCrawl</title>
+    <title>graphSub</title>
     <link rel="stylesheet" href="css/base.css">
     <style>
     .node {
@@ -19,7 +19,7 @@
 </head>
 <body>
     <div class="container">
-		<h2>graphCrawl</h2>
+		<h2>graphSub</h2>
 		<section id="chart">
 		</section>
 	</div>
@@ -47,9 +47,6 @@
         .links(graph.links)
         .start();
 
-    //console.log(fm.nodes);
-    //console.log(fm.links);
-
     var link = svg.selectAll(".link")
         .data(graph.links)
         .enter().append("line")
@@ -63,15 +60,17 @@
         .append('g')
 
     function test(d, i){
-        console.log('node id->', d.name, i);
+        console.log('node ', d, i);
         //console.log(graph.nodes);
         var n = 1;
-        var res = graphSub(d, i, "name", n, graph.links, graph.nodes);
+
+        // pass a deep copy, not the actualy dataset, else problems
+        var res = graphSub(d, "name", n, JSON.parse(JSON.stringify(graph.links)), JSON.parse(JSON.stringify(graph.nodes)));
         
     };
     var node = gnodes.append("circle")
         .attr("class", "node")
-        .attr("r", 5)
+        .attr("r", 20)
         .style("fill", function(d) { return color(d.group); })
         .on('click', test)
         .call(force.drag);
