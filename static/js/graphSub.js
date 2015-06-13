@@ -50,6 +50,7 @@ var makeSubLinksArr = function(subNodes, propname, subLinks){
 
 // return a sub-network of n nodes around a source node
 var graphSub = function(datum, propname, distanceToFetch, links, nodes){
+  console.log(arguments);
   // this function looks at the distance from the source nodes
   // it expands outwards, distance times. this is equivelent
   // to 'distance' in graph theory.
