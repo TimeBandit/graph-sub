@@ -12,65 +12,65 @@
   <script src="../js/underscore-min.js"></script>
   <script src="../js/graphSub.js" charset="utf-8"></script>
   <script>
-    QUnit.module("graphSub function Unit Test", {
-      setup: function() {
+  QUnit.module("graphSub function Unit Test", {
+    setup: function() {
       // vars to be used by all tests
       this.testNodes = [
-      {"name":"a"},
-      {"name":"b"},
-      {"name":"c"},
-      {"name":"d"},
-      {"name":"e"},
-      {"name":"f"},
-      {"name":"g"},
-      {"name":"h"},
-      {"name":"i"},
-      {"name":"j"},
-      {"name":"k"},
-      {"name":"l"},
-      {"name":"m"},
-      {"name":"n"}
+        {"name":"a"},
+        {"name":"b"},
+        {"name":"c"},
+        {"name":"d"},
+        {"name":"e"},
+        {"name":"f"},
+        {"name":"g"},
+        {"name":"h"},
+        {"name":"i"},
+        {"name":"j"},
+        {"name":"k"},
+        {"name":"l"},
+        {"name":"m"},
+        {"name":"n"}
       ];
 
       this.testLinks = [
-      {"source":0,"target":1,"value":1},
-      {"source":2,"target":3,"value":1},
-      {"source":4,"target":5,"value":1},
-      {"source":7,"target":8,"value":1},
-      {"source":9,"target":10,"value":1},
-      {"source":11,"target":12,"value":1},
-      {"source":0,"target":5,"value":1},
-      {"source":1,"target":5,"value":1},
-      {"source":0,"target":6,"value":1},
-      {"source":1,"target":6,"value":1},
-      {"source":0,"target":7,"value":1},
-      {"source":1,"target":7,"value":1},
-      {"source":2,"target":8,"value":1},
-      {"source":3,"target":8,"value":1},
-      {"source":2,"target":9,"value":1},
-      {"source":3,"target":9,"value":1},
-      {"source":4,"target":11,"value":1},
-      {"source":5,"target":11,"value":1},
-      {"source":9,"target":12,"value":1},
-      {"source":10,"target":12,"value":1},
-      {"source":11,"target":13,"value":1},
-      {"source":12,"target":13,"value":1}
-      ];      
+        {"source":0,"target":1,"value":1},
+        {"source":2,"target":3,"value":1},
+        {"source":4,"target":5,"value":1},
+        {"source":7,"target":8,"value":1},
+        {"source":9,"target":10,"value":1},
+        {"source":11,"target":12,"value":1},
+        {"source":0,"target":5,"value":1},
+        {"source":1,"target":5,"value":1},
+        {"source":0,"target":6,"value":1},
+        {"source":1,"target":6,"value":1},
+        {"source":0,"target":7,"value":1},
+        {"source":1,"target":7,"value":1},
+        {"source":2,"target":8,"value":1},
+        {"source":3,"target":8,"value":1},
+        {"source":2,"target":9,"value":1},
+        {"source":3,"target":9,"value":1},
+        {"source":4,"target":11,"value":1},
+        {"source":5,"target":11,"value":1},
+        {"source":9,"target":12,"value":1},
+        {"source":10,"target":12,"value":1},
+        {"source":11,"target":13,"value":1},
+        {"source":12,"target":13,"value":1}
+      ];
     }
   });
 
-    QUnit.test( "# of generations is 0", function( assert ) {
+  QUnit.test( "# of generations is 0", function( assert ) {
     //var fixture = $( "#qunit-fixture" );
     var n;
     var actual,
         expected,
         message;
-/*
+
     actual = graphSub(this.testNodes[0], "name", n, this.testLinks, this.testNodes);
     expected = {nodes: [{'name': 'a'}], links: []};
     message = 'sub network from a when n = 0';
     assert.deepEqual(actual, expected, message);
-/*
+
     actual = graphSub(this.testNodes[1], "name", n, this.testLinks, this.testNodes);
     expected = {nodes: [{'name': 'b'}], links: []};
     message = 'sub network from b when n = 0';
@@ -80,15 +80,23 @@
     expected = {nodes: [{'name': 'c'}], links: []};
     message = 'sub network from c when n = 0';
     assert.deepEqual(actual, expected, message);
-*/    
-///*
+  });
+
+  QUnit.test( "# of generations is 1", function( assert ) {
     n = 1;
-      
+
     actual = graphSub(this.testNodes[0], "name", n, this.testLinks, this.testNodes);
-    expected = {"nodes":[{"name":"h"},{"name":"g"},{"name":"f"},{"name":"b"},{"name":"a"}],"links":[{"source":4,"target":0,"value":1},{"source":4,"target":1,"value":1},{"source":4,"target":2,"value":1},{"source":4,"target":3,"value":1}]};
+    expected = {
+      "nodes": [{"name":"h"},{"name":"g"},{"name":"f"},{"name":"b"},{"name":"a"}],
+      "links": [
+        {"source":4,"target":0,"value":1},
+        {"source":4,"target":1,"value":1},
+        {"source":4,"target":2,"value":1},
+        {"source":4,"target":3,"value":1}
+      ]
+    };
     message = 'sub network from a when n = 1';
     assert.deepEqual(actual, expected, message);
-//*/
   });
 
   </script>
