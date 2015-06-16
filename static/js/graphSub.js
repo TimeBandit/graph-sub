@@ -20,7 +20,7 @@ var makeSubNodesArr = function(visited, propname, nodes){
     // remove properties added by d3, preserve use defined properties
     obj = _.omit(obj, ['index', 'fixed', 'weight', 'px', 'py', 'x', 'y'])
     result.push(obj);
-    console.log('makeSubNodesArr ', result);
+    //console.log('makeSubNodesArr ', result);
   };
   return result;
 };
@@ -45,14 +45,13 @@ var makeSubLinksArr = function(subNodes, propname, subLinks){
     obj.target = nodeIndex[obj.target[propname]];
     result.push(obj);
   };
-
+  //console.log('makeSubLinksArr ', result);
   return result
 };
 
 // return a sub-network of n layers around a source node
 var graphSub = function(datum, propname, distanceToFetch, links, nodes){
-  // console.log(arguments);
-
+  
   // initialise variable.
   var count = 0,
       toVisit = [],
@@ -89,7 +88,6 @@ var graphSub = function(datum, propname, distanceToFetch, links, nodes){
 
   result.nodes = makeSubNodesArr(visited, propname, nodes);
   result.links = makeSubLinksArr(result.nodes, propname, subLinks)
-  console.log('RESULT ', JSON.stringify(result));
-
+  
   return result;
 };
