@@ -65,12 +65,12 @@
     var actual,
         expected,
         message;
-/*
+
     actual = graphSub(this.testNodes[0], "name", n, this.testLinks, this.testNodes);
     expected = {nodes: [{'name': 'a'}], links: []};
     message = 'sub network from a when n = 0';
     assert.deepEqual(actual, expected, message);
-/*
+
     actual = graphSub(this.testNodes[1], "name", n, this.testLinks, this.testNodes);
     expected = {nodes: [{'name': 'b'}], links: []};
     message = 'sub network from b when n = 0';
@@ -80,15 +80,8 @@
     expected = {nodes: [{'name': 'c'}], links: []};
     message = 'sub network from c when n = 0';
     assert.deepEqual(actual, expected, message);
-*/    
-///*
-    n = 1;
-      
-    actual = graphSub(this.testNodes[0], "name", n, this.testLinks, this.testNodes);
-    expected = {"nodes":[{"name":"h"},{"name":"g"},{"name":"f"},{"name":"b"},{"name":"a"}],"links":[{"source":4,"target":0,"value":1},{"source":4,"target":1,"value":1},{"source":4,"target":2,"value":1},{"source":4,"target":3,"value":1}]};
-    message = 'sub network from a when n = 1';
-    assert.deepEqual(actual, expected, message);
-//*/
+    
+
   });
 
   </script>

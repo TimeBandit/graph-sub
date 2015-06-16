@@ -20,7 +20,7 @@ var makeSubNodesArr = function(visited, propname, nodes){
     // remove properties added by d3, preserve use defined properties
     obj = _.omit(obj, ['index', 'fixed', 'weight', 'px', 'py', 'x', 'y'])
     result.push(obj);
-    console.log('### ', result);
+    console.log('makeSubNodesArr ', result);
   };
   return result;
 };
@@ -40,6 +40,7 @@ var makeSubLinksArr = function(subNodes, propname, subLinks){
   // create a new subLinksArr based on the subNodeArr
   for (var i = 0; i < subLinks.length; i++) {
     obj = subLinks[i];
+    // look up propname and get its array indice
     obj.source = nodeIndex[obj.source[propname]];
     obj.target = nodeIndex[obj.target[propname]];
     result.push(obj);
@@ -48,18 +49,11 @@ var makeSubLinksArr = function(subNodes, propname, subLinks){
   return result
 };
 
-// return a sub-network of n nodes around a source node
+// return a sub-network of n layers around a source node
 var graphSub = function(datum, propname, distanceToFetch, links, nodes){
-  console.log(arguments);
-  // this function looks at the distance from the source nodes
-  // it expands outwards, distance times. this is equivelent
-  // to 'distance' in graph theory.
+  // console.log(arguments);
 
-  // the algorithim here is concerned with collecting the links making up paths
-  // add the initial datum to toVisit
-  // pop the tovisit array
-  // find all the links involving popped item and store them in subLinks, store the other id into toVisit
-  // repeat the above distanceToFetch times.
+  // initialise variable.
   var count = 0,
       toVisit = [],
       visited = [],
@@ -74,14 +68,14 @@ var graphSub = function(datum, propname, distanceToFetch, links, nodes){
     current = toVisit.pop(toVisit);
 
     for (var i = 0; i < links.length; i++) {
-      
+      // collect links that 'current' point to
       if(links[i].source[propname] === current){
         // dont store if present, uses underscore.js union
         subLinks = _.union([links[i]], subLinks); 
         toVisit = _.union([links[i].target[propname]], toVisit);
         visited = _.union([links[i].target[propname]], visited);
       };
-
+      // collect the links that point to 'current'
       if(links[i].target[propname] === current){
         // dont store if present, uses underscore.js union
         subLinks = _.union([links[i]], subLinks); 
@@ -93,10 +87,9 @@ var graphSub = function(datum, propname, distanceToFetch, links, nodes){
     count = count + 1;
   };
 
-  console.log('i just vistited-> ', visited);
   result.nodes = makeSubNodesArr(visited, propname, nodes);
   result.links = makeSubLinksArr(result.nodes, propname, subLinks)
-  console.log('final ', JSON.stringify(result));
+  console.log('RESULT ', JSON.stringify(result));
 
   return result;
 };
