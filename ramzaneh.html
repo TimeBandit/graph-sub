@@ -14,8 +14,8 @@
 
 </style>
 <body>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="static/js/underscore-min.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script>
 
 var width = 960,
@@ -32,19 +32,47 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var generateLinks = function(nodes, edges) {
-  var indexes = _.reduce(nodes, function(indexes, v, i) {
-    indexes[v.id] = i;
+var linkIndexesFromNodeIds = function(nodeIds, links) {
+  // Generate lookup table of ids => indexes.
+  var indexes = _.reduce(nodeIds, function(indexes, v, i) {
+    indexes[v] = i;
     return indexes;
   }, {})
-  var links = _.map(edges, function(v) {
+
+  // Map links from id-based to index-based.
+  return _.map(links, function(v) {
     return {source: indexes[v.source], target: indexes[v.target]};
   });
-  return links;
-}
+};
+
+var mostConnectedSourceNodeId = function(graph) {
+  var commonLink = _.chain(graph.edges)
+    .groupBy(function(v) { return v.source; })
+    .sortBy(function(v) { return v.length; })
+    .last()
+    .first()
+    .value();
+  return commonLink.source;
+};
 
 d3.json("data/ramzaneh.json", function(error, graph) {
-  graph.links = generateLinks(graph.nodes, graph.edges);
+  var rootId = mostConnectedSourceNodeId(graph);
+
+  var links = _.where(graph.edges, {source: rootId});
+  var linkedNodeIds = _.pluck(links, "target").concat(rootId);
+
+  links = linkIndexesFromNodeIds(linkedNodeIds, links);
+
+  var lookup = _.chain(graph.nodes)
+    .reduce(function(m, v, i) { m[v.id] = i; return m; }, {})
+    .value();
+  var linkedNodes = _.map(linkedNodeIds, function(i) {
+    return graph.nodes[lookup[i]];
+  });
+
+  graph.nodes = linkedNodes;
+  graph.links = links;
+
   force
       .nodes(graph.nodes)
       .links(graph.links)
