@@ -18,6 +18,7 @@
 </style>
 </head>
 <body>
+    <button onclick="addNodes()">Restart Animation</button>
     <div class="container">
 		<h2>graphSub</h2>
 		<section id="chart">
@@ -30,22 +31,28 @@
     var width = 960,
         height = 500;
 
-    // decalare a colour pallete
+    // declare a colour pallete
     var color = d3.scale.category20();
 
     // create the force layout
     var force = d3.layout.force()
-        .charge(-120)
-        .linkDistance(200)
-        .size([width, height]);
+            .charge(-120)
+            .linkDistance(200)
+            .size([width, height]);
+
+    var nodes,
+        links;
 
     // create the svg element in the DOM
-    var svg = d3.select("body").append("svg")
+    var svg = d3.select("body").append("svg:svg")
         .attr("width", width)
-        .attr("height", height);
+        .attr("height", height)
+        .append('svg:g');
+
+    var nodes,
+        links;
 
    // load the JSON data into memory
-   var jsonData;
    d3.json("data/fm.json", function(error, graph){
         console.log("Loading Data....");
 
@@ -55,9 +62,20 @@
                 message: error
             };
         }else{
-            jsonData = graph;
-            console.log("Success...", graph);
-            update(graph);            
+            
+            // On start, the layout initializes various attributes on the 
+            // associated nodes. Called when nodes or links change. 
+            force
+                .nodes(graph.nodes)
+                .links(graph.links)
+                .start();                
+            
+            nodes = force.nodes();
+            links = force.links();
+            console.log(nodes);
+        
+            console.log("Success...");
+            update();
         };
    });
    
@@ -66,40 +84,45 @@
         var n = 1,
             result;
 
+        // TODO move inside graphSub
         // create unique deep copies of data and nodes
-        var links = JSON.parse(JSON.stringify(jsonData.links));
-        var nodes = JSON.parse(JSON.stringify(jsonData.nodes));
-        
         result = graphSub(datum, 
                 "name", 
                 n, 
                 links, 
-                nodes);
+                nodes);        
         
         console.log('Sub-graph complete', result);
-   }
-   function update (graph) {
-        console.log("Updating graph...", graph.links);
+        
+        nodes = result.nodes;
+        links = result.links;
 
-        force
-            .nodes(graph.nodes)
-            .links(graph.links)
-            .start();
+        update();
+   }
+   function update () {
+        console.log("Updating graph...");
 
         // DATA JOIN
         // Join new data with old elements, if any.
         var link = svg.selectAll(".link")
-            .data(graph.links);
+                .data(links, function (d) {
+                    return d.source.name + "-" + d.target.name;
+                }
+            );
         
         var gnodes = svg.selectAll(".node")
-            .data(graph.nodes);
-        
+                .data(nodes, function (d) {
+                    return d.name;
+                }
+            );
+
         // UPDATE
         // Update old elements as needed.
         
 
         // ENTER
         // Create new elements as needed.
+        
         link.enter().append("line")
             .attr("class", "link")
             .style("stroke-width", function(d) { return Math.sqrt(d.value); });
@@ -108,81 +131,46 @@
             .append('g')
             .append("circle")
             .attr("class", "node")
-            .attr("r", 20)
+            .attr("r", 10)
             .style("fill", function(d) { return color(d.group); })
             .on('click', click) // bind a mouse-click to each node
             .call(force.drag)
-            .append("text")
-            .text(function(d) { return d.name; });
-
-        force.on("tick", function() {
-            link.attr("x1", function(d) { return d.source.x; })
-                .attr("y1", function(d) { return d.source.y; })
-                .attr("x2", function(d) { return d.target.x; })
-                .attr("y2", function(d) { return d.target.y; });
-
-        // Translate the groups
-        gnodes.attr("transform", function(d) { 
-            return 'translate(' + [d.x, d.y] + ')'; 
-      });
-      });
-
-   }
-    // load the JSON data
-    /*
-    d3.json("data/fm.json", function(error, graph) {
-        force
-            .nodes(graph.nodes)
-            .links(graph.links)
-            .start();
-
-        // create a line for each item in graph.links
-        // create a data join
-        var link = svg.selectAll(".link")
-            .data(graph.links)
-            .enter().append("line")
-            .attr("class", "link")
-            .style("stroke-width", function(d) { return Math.sqrt(d.value); });
-
-        // grouped nodes(gnodes)
-        // create a data join
-        var gnodes = svg.selectAll(".node")
-            .data(graph.nodes)
-            .enter()
-            .append('g')
-
-        function update(d, i){
-            //console.log('node ', d, i);
-            //console.log(graph.nodes);
-            var n = 1;
-
-            // pass a deep copy, not the actualy dataset, else problems
-            var res = graphSub(d, "name", n, JSON.parse(JSON.stringify(graph.links)), JSON.parse(JSON.stringify(graph.nodes)));
-            
-        };
-        var node = gnodes.append("circle")
-            .attr("class", "node")
-            .attr("r", 20)
-            .style("fill", function(d) { return color(d.group); })
-            .on('click', update) // bind a mouse-click to each node
-            .call(force.drag);
-
+        
         var labels = gnodes.append("text")
             .text(function(d) { return d.name; });
 
+        // EXIT
+        // Remove old elements as needed.
+        gnodes.exit()
+            .transition()
+            .duration(750)
+            .attr("y", 60)
+            .style("fill-opacity", 1e-6)
+            .remove();
+
+        link.exit()
+            .transition()
+            .duration(750)
+            .attr("y", 60)
+            .style("fill-opacity", 1e-6)
+            .remove();
+
         force.on("tick", function() {
             link.attr("x1", function(d) { return d.source.x; })
                 .attr("y1", function(d) { return d.source.y; })
                 .attr("x2", function(d) { return d.target.x; })
                 .attr("y2", function(d) { return d.target.y; });
 
-        // Translate the groups
-        gnodes.attr("transform", function(d) { 
-            return 'translate(' + [d.x, d.y] + ')'; 
+                // Translate the groups
+                gnodes.attr("transform", function(d) { 
+                    return 'translate(' + [d.x, d.y] + ')'; 
+                });
       });
-      });
-});
-*/
+
+        // Restart the force layout
+        force.start();
+
+   }
 </script>
 </body>
 </html>

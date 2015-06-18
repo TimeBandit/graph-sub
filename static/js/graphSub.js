@@ -11,6 +11,7 @@
 
 // create a list of the nodes in the subnet
 var makeSubNodesArr = function(visited, propname, nodes){
+  console.log(visited);
   var result = [],
       searchPair = {},
       obj;
@@ -18,10 +19,12 @@ var makeSubNodesArr = function(visited, propname, nodes){
     searchPair[propname] = visited[i];
     obj = _.findWhere(nodes, searchPair)
     // remove properties added by d3, preserve use defined properties
-    obj = _.omit(obj, ['index', 'fixed', 'weight', 'px', 'py', 'x', 'y'])
+    obj = _.omit(obj, ['index'])
     result.push(obj);
     //console.log('makeSubNodesArr ', result);
   };
+  console.log(nodes);
+  
   return result;
 };
 
@@ -29,6 +32,10 @@ var makeSubNodesArr = function(visited, propname, nodes){
 var makeSubLinksArr = function(subNodes, propname, subLinks){
   var result = [],
       nodeIndex = {},
+      sourceIndex,
+      sourceObject = {},      
+      targetIndex,
+      targetObject = {},
       obj;
 
   // {'a': 0, 'b': 1, 'c': '2' etc}
@@ -36,13 +43,24 @@ var makeSubLinksArr = function(subNodes, propname, subLinks){
   for (var i = 0; i < subNodes.length; i++) {
     nodeIndex[subNodes[i][propname]] = i;
   };
+  console.log(JSON.stringify(nodeIndex));
 
   // create a new subLinksArr based on the subNodeArr
   for (var i = 0; i < subLinks.length; i++) {
     obj = subLinks[i];
+    console.log(JSON.stringify(obj));
     // look up propname and get its array indice
-    obj.source = nodeIndex[obj.source[propname]];
-    obj.target = nodeIndex[obj.target[propname]];
+    sourceIndex = nodeIndex[obj.source[propname]];
+    sourceObject.index = sourceIndex;
+    sourceObject.propname = subNodes[sourceIndex][propname];
+
+    targetIndex = nodeIndex[obj.target[propname]];
+    targetObject.index = targetIndex;
+    targetObject.propname = subNodes[targetIndex][propname];
+
+    obj.source = sourceObject;
+    obj.target = targetObject;
+
     result.push(obj);
   };
   //console.log('makeSubLinksArr ', result);
@@ -52,6 +70,10 @@ var makeSubLinksArr = function(subNodes, propname, subLinks){
 // return a sub-network of n layers around a source node
 var graphSub = function(datum, propname, distanceToFetch, links, nodes){
   
+  // create deep copies of data
+  var nodes = JSON.parse(JSON.stringify(nodes));
+  var links = JSON.parse(JSON.stringify(links));
+
   // initialise variable.
   var count = 0,
       toVisit = [],
@@ -85,9 +107,9 @@ var graphSub = function(datum, propname, distanceToFetch, links, nodes){
 
     count = count + 1;
   };
-
   result.nodes = makeSubNodesArr(visited, propname, nodes);
-  result.links = makeSubLinksArr(result.nodes, propname, subLinks)
+  result.links = makeSubLinksArr(result.nodes, propname, JSON.parse(JSON.stringify(subLinks)));
+  console.log('result', result);
   
   return result;
 };
