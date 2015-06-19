@@ -32,7 +32,17 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var linkIndexesFromNodeIds = function(nodeIds, links) {
+var mostConnectedSourceNodeId = function(graph) {
+  var commonLink = _.chain(graph.edges)
+    .groupBy(function(v) { return v.source; })
+    .sortBy(function(v) { return v.length; })
+    .last()
+    .first()
+    .value();
+  return commonLink.source;
+};
+
+var buildLinksFromNodeIds = function(nodeIds, links) {
   // Generate lookup table of ids => indexes.
   var indexes = _.reduce(nodeIds, function(indexes, v, i) {
     indexes[v] = i;
@@ -45,33 +55,45 @@ var linkIndexesFromNodeIds = function(nodeIds, links) {
   });
 };
 
-var mostConnectedSourceNodeId = function(graph) {
-  var commonLink = _.chain(graph.edges)
-    .groupBy(function(v) { return v.source; })
-    .sortBy(function(v) { return v.length; })
-    .last()
-    .first()
+// Inputs:
+//  links: [{target: node.id, ..}, ..]
+//  nodes: [{id: ###, ..}, ..]
+//
+// Output:
+//  links: [{source: i, target: j}, ..]
+//  nodes: <minimal subset of nodes>
+var buildSubGraph = function(links, nodes) {
+  links = _.uniq(links);
+  var linkedNodeIds = _.chain(links)
+    .map(function(v) { return [v.source, v.target]; })
+    .flatten()
+    .uniq()
     .value();
-  return commonLink.source;
+
+  links = buildLinksFromNodeIds(linkedNodeIds, links);
+  var lookup = _.chain(nodes)
+    .reduce(function(m, v, i) { m[v.id] = i; return m; }, {})
+    .value();
+  var linkedNodes = _.map(linkedNodeIds, function(i) {
+    return nodes[lookup[i]];
+  });
+
+  return { nodes: linkedNodes, links: links };
 };
 
 d3.json("data/ramzaneh.json", function(error, graph) {
   var rootId = mostConnectedSourceNodeId(graph);
 
-  var links = _.where(graph.edges, {source: rootId});
-  var linkedNodeIds = _.pluck(links, "target").concat(rootId);
+  var subGraphLinks = _.where(graph.edges, {source: rootId});
+  var secondSubGraphLinks = _.reduce(subGraphLinks, function(m, v) {
+    m = m.concat(_.where(graph.edges, {source: v.target}));
+    return m;
+  }, subGraphLinks);
 
-  links = linkIndexesFromNodeIds(linkedNodeIds, links);
+  var subGraph = buildSubGraph(secondSubGraphLinks, graph.nodes);
 
-  var lookup = _.chain(graph.nodes)
-    .reduce(function(m, v, i) { m[v.id] = i; return m; }, {})
-    .value();
-  var linkedNodes = _.map(linkedNodeIds, function(i) {
-    return graph.nodes[lookup[i]];
-  });
-
-  graph.nodes = linkedNodes;
-  graph.links = links;
+  graph.nodes = subGraph.nodes;
+  graph.links = subGraph.links;
 
   force
       .nodes(graph.nodes)
