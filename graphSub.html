@@ -6,171 +6,190 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>graphSub</title>
     <link rel="stylesheet" href="css/base.css">
+    <title>Animating Changes in Force Diagram</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="static/js/graphSub.js" charset="utf-8"></script>
     <style>
-    .node {
-        stroke: #fff;
-        stroke-width: 1.5px;
-    }
-    .link {
-        fill: none;
-        stroke: #bbb;
-    }
-</style>
+        .link {
+            stroke: #2E2E2E;
+            stroke-width: 2px;
+        }
+
+        .node {
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+        .textClass {
+            stroke: #323232;
+            font-family: "Lucida Grande", "Droid Sans", Arial, Helvetica, sans-serif;
+            font-weight: normal;
+            stroke-width: .5;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    <button onclick="addNodes()">Restart Animation</button>
-    <div class="container">
-		<h2>graphSub</h2>
-		<section id="chart">
-		</section>
-	</div>
-	<script src="static/js/d3.js" charset="utf-8"></script>
-    <script src="static/js/underscore-min.js" charset="utf-8"></script>
-    <script src="static/js/graphSub.js" charset="utf-8"></script>
-    <script type="text/javascript">
-    var width = 960,
-        height = 500;
+<button onclick="reStart()">Restart Animation</button>
+<script>
+    // Code layout uses the functional/module pattern
+    // See p52 of Crockfords book
+    function chart() {
+        var width = 720, // default width
+            height = 80, // default height
+            color = d3.scale.category10(),
+            force = d3.layout.force(),
+            nodes = force.nodes(),
+            links = force.links(),
+            vis;
 
-    // declare a colour pallete
-    var color = d3.scale.category20();
+        function my(elementName) {
+            // generate chart here, using `width` and `height`
+            // set up the D3 visualisation in the specified element
+            vis = d3.select(elementName)
+                    .append("svg:svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("id", "svg")
+                    .attr("pointer-events", "all")
+                    .attr("viewBox", "0 0 " + width + " " + height)
+                    .attr("perserveAspectRatio", "xMinYMid")
+                    .append('svg:g');
+        }
 
-    // create the force layout
-    var force = d3.layout.force()
-            .charge(-120)
-            .linkDistance(200)
-            .size([width, height]);
-
-    var nodes,
-        links;
-
-    // create the svg element in the DOM
-    var svg = d3.select("body").append("svg:svg")
-        .attr("width", width)
-        .attr("height", height)
-        .append('svg:g');
-
-    var nodes,
-        links;
-
-   // load the JSON data into memory
-   d3.json("data/fm.json", function(error, graph){
-        console.log("Loading Data....");
-
-        if (error) {
-            throw {
-                name: 'JSONError',
-                message: error
-            };
-        }else{
-            
-            // On start, the layout initializes various attributes on the 
-            // associated nodes. Called when nodes or links change. 
-            force
-                .nodes(graph.nodes)
-                .links(graph.links)
-                .start();                
-            
-            nodes = force.nodes();
-            links = force.links();
-            console.log(nodes);
-        
-            console.log("Success...");
-            update();
+        my.width = function(value) {
+            if (!arguments.length) return width;
+            width = value;
+            return my;
         };
-   });
-   
-   function click (datum, i) {
-        console.log(datum.name, 'has been cliked...');
-        var n = 1,
-            result;
 
-        // TODO move inside graphSub
-        // create unique deep copies of data and nodes
-        result = graphSub(datum, 
-                "name", 
-                n, 
-                links, 
-                nodes);        
-        
-        console.log('Sub-graph complete', result);
-        
-        nodes = result.nodes;
-        links = result.links;
+        my.height = function(value) {
+            if (!arguments.length) return height;
+            height = value;
+            return my;
+        };
 
-        update();
-   }
-   function update () {
-        console.log("Updating graph...");
+        my.update = function () {
+            var link = vis.selectAll("line")
+                    .data(links, function (d) {
+                        return d.source.id + "-" + d.target.id;
+                    });
 
-        // DATA JOIN
-        // Join new data with old elements, if any.
-        var link = svg.selectAll(".link")
-                .data(links, function (d) {
-                    return d.source.name + "-" + d.target.name;
-                }
-            );
-        
-        var gnodes = svg.selectAll(".node")
-                .data(nodes, function (d) {
-                    return d.name;
-                }
-            );
+            link.enter().append("line")
+                    .attr("id", function (d) {
+                        return d.source.id + "-" + d.target.id;
+                    })
+                    .attr("stroke-width", function (d) {
+                        return d.value / 10;
+                    })
+                    .attr("class", "link");
+            link.append("title")
+                    .text(function (d) {
+                        return d.value;
+                    });
+            link.exit().remove();
 
-        // UPDATE
-        // Update old elements as needed.
-        
+            var node = vis.selectAll("g.node")
+                    .data(nodes, function (d) {
+                        return d.id;
+                    });
 
-        // ENTER
-        // Create new elements as needed.
-        
-        link.enter().append("line")
-            .attr("class", "link")
-            .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+            var nodeEnter = node.enter().append("g")
+                    .attr("class", "node")
+                    .call(force.drag);
 
-        gnodes.enter()
-            .append('g')
-            .append("circle")
-            .attr("class", "node")
-            .attr("r", 10)
-            .style("fill", function(d) { return color(d.group); })
-            .on('click', click) // bind a mouse-click to each node
-            .call(force.drag)
-        
-        var labels = gnodes.append("text")
-            .text(function(d) { return d.name; });
+            nodeEnter.append("svg:circle")
+                    .attr("r", 12)
+                    .attr("id", function (d) {
+                        return "Node;" + d.id;
+                    })
+                    .attr("class", "nodeStrokeClass")
+                    .attr("fill", function(d) { return color(d.id); });
 
-        // EXIT
-        // Remove old elements as needed.
-        gnodes.exit()
-            .transition()
-            .duration(750)
-            .attr("y", 60)
-            .style("fill-opacity", 1e-6)
-            .remove();
+            nodeEnter.append("svg:text")
+                    .attr("class", "textClass")
+                    .attr("x", 14)
+                    .attr("y", ".31em")
+                    .text(function (d) {
+                        return d.id;
+                    });
 
-        link.exit()
-            .transition()
-            .duration(750)
-            .attr("y", 60)
-            .style("fill-opacity", 1e-6)
-            .remove();
+            node.exit().remove();
 
-        force.on("tick", function() {
-            link.attr("x1", function(d) { return d.source.x; })
-                .attr("y1", function(d) { return d.source.y; })
-                .attr("x2", function(d) { return d.target.x; })
-                .attr("y2", function(d) { return d.target.y; });
+            force.on("tick", function () {
 
-                // Translate the groups
-                gnodes.attr("transform", function(d) { 
-                    return 'translate(' + [d.x, d.y] + ')'; 
+                node.attr("transform", function (d) {
+                    return "translate(" + d.x + "," + d.y + ")";
                 });
-      });
 
-        // Restart the force layout
-        force.start();
+                link.attr("x1", function (d) {
+                    return d.source.x;
+                })
+                        .attr("y1", function (d) {
+                            return d.source.y;
+                        })
+                        .attr("x2", function (d) {
+                            return d.target.x;
+                        })
+                        .attr("y2", function (d) {
+                            return d.target.y;
+                        });
+            });
 
-   }
+            // Restart the force layout.
+            force.gravity(.01)
+                .charge(-80000)
+                .friction(0)
+                .linkDistance( function(d) { return d.value * 10 } )
+                .size([w, h])
+                .start();
+        };
+
+        return my;
+    }
+
+    function graphSub(){
+        // manipulates the JSON data, extracts the subset.
+        var jsonData,
+            jsonFileName = 'miserables.json'; // default json file            
+
+        function my(string){
+            if (arguments.length) jsonFileName = string;
+            
+            d3.json('data/' + jsonFileName, function(error, data){
+                console.log('Loading JSON Data...')            
+                if (error) {
+                    console.log(error);
+                }else{
+                    jsonData = data;                    
+                }
+            });
+
+            return my;            
+        };
+        
+        my.extractGraph = function(size){
+            // extract graph based on 'size'
+            console.log(jsonData);
+            return jsonData;
+        };
+        return my;
+    };
+    
+var myChart = chart()
+                .width(960)
+                .height(450);
+
+var myNetwork = graphSub();    
+myChart('body');
+
+myNetwork();
+setTimeout(function()   {
+    console.log('a delay');
+    var a = myNetwork.extractGraph(1);
+    console.log('result',a); 
+}, 500);
+
 </script>
 </body>
 </html>
