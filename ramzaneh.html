@@ -32,37 +32,22 @@ var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
-var mostConnectedSourceNodeId = function(graph) {
-  var commonLink = _.chain(graph.edges)
-    .groupBy(function(v) { return v.source; })
-    .sortBy(function(v) { return v.length; })
-    .last()
-    .first()
-    .value();
-  return commonLink.source;
-};
-
 var buildLinksFromNodeIds = function(nodeIds, links) {
-  // Generate lookup table of ids => indexes.
-  var indexes = _.reduce(nodeIds, function(indexes, v, i) {
-    indexes[v] = i;
-    return indexes;
-  }, {})
+  var indexById = _.reduce(nodeIds, function(m, v, i) { m[v] = i; return m; }, {})
 
-  // Map links from id-based to index-based.
   return _.map(links, function(v) {
-    return {source: indexes[v.source], target: indexes[v.target]};
+    return {source: indexById[v.source], target: indexById[v.target]};
   });
 };
 
 // Inputs:
-//  links: [{target: node.id, ..}, ..]
-//  nodes: [{id: ###, ..}, ..]
+//  nodes . . [{id: ###, ..}, ..]
+//  links . . [{target: node.id, ..}, ..]
 //
 // Output:
-//  links: [{source: i, target: j}, ..]
-//  nodes: <minimal subset of nodes>
-var buildSubGraph = function(links, nodes) {
+//  nodes . . <minimal subset of nodes>
+//  links . . [{source: i, target: j}, ..] (unique links)
+var formatGraphForD3 = function(nodes, links) {
   links = _.uniq(links);
   var linkedNodeIds = _.chain(links)
     .map(function(v) { return [v.source, v.target]; })
@@ -71,60 +56,81 @@ var buildSubGraph = function(links, nodes) {
     .value();
 
   links = buildLinksFromNodeIds(linkedNodeIds, links);
-  var lookup = _.chain(nodes)
-    .reduce(function(m, v, i) { m[v.id] = i; return m; }, {})
-    .value();
+  var indexById = _.reduce(nodes, function(m, v, i) { m[v.id] = i; return m; }, {});
   var linkedNodes = _.map(linkedNodeIds, function(i) {
-    return nodes[lookup[i]];
+    return nodes[indexById[i]];
   });
 
   return { nodes: linkedNodes, links: links };
 };
 
+// Build out a D3-ready subgraph
+//
+// Inputs:
+//  nodes  . . . [{id: ###, ..}, ..]
+//  links  . . . [{target: node.id, ..}, ..]
+//  rootId . . . root node id
+//  distance . . number of connections to build out
+//
+// Output:
+//  nodes . . <minimal subset of nodes>
+//  links . . [{source: i, target: j}, ..] (unique links)
+var buildSubGraph = function(nodes, links, rootId, distance) {
+  var sourceLinks = [{source: rootId, target: rootId}];
+
+  // A really naive algorithm: we're not yet worrying
+  // too much about optimising for already-visited links.
+  var subGraphLinks = [];
+  for (var i = 0; i < distance; ++i) {
+    var targetLinks = _.reduce(sourceLinks, function(m, v) {
+      m = m.concat(_.where(links, {source: v.target}));
+      return m;
+    }, []);
+    subGraphLinks = subGraphLinks.concat(targetLinks);
+    sourceLinks = targetLinks;
+  }
+
+  return formatGraphForD3(nodes, subGraphLinks);
+};
+
+var test = function(n, i){
+  console.log('Node: ' + JSON.stringify({id: n.id, label: n.label}), i);
+};
+
 d3.json("data/ramzaneh.json", function(error, graph) {
-  var rootId = mostConnectedSourceNodeId(graph);
-
-  var subGraphLinks = _.where(graph.edges, {source: rootId});
-  var secondSubGraphLinks = _.reduce(subGraphLinks, function(m, v) {
-    m = m.concat(_.where(graph.edges, {source: v.target}));
-    return m;
-  }, subGraphLinks);
-
-  var subGraph = buildSubGraph(secondSubGraphLinks, graph.nodes);
-
-  graph.nodes = subGraph.nodes;
-  graph.links = subGraph.links;
+  var subGraph = buildSubGraph(graph.nodes, graph.edges, '27', 3);
 
   force
-      .nodes(graph.nodes)
-      .links(graph.links)
-      .start();
+    .nodes(subGraph.nodes)
+    .links(subGraph.links)
+    .start();
 
   var link = svg.selectAll(".link")
-      .data(graph.links)
+    .data(subGraph.links)
     .enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+    .attr("class", "link")
+    .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
   var node = svg.selectAll(".node")
-      .data(graph.nodes)
+    .data(subGraph.nodes)
     .enter().append("circle")
-      .attr("class", "node")
-      .attr("r", 5)
-      .style("fill", function(d) { return color(d.group); })
-      .call(force.drag);
+    .attr("class", "node")
+    .attr("r", 5)
+    .style("fill", function(d) { return color(d.group); })
+    .on('click', test)
+    .call(force.drag);
 
   node.append("title")
-      .text(function(d) { return d.name; });
+    .text(function(d) { return d.label; });
 
   force.on("tick", function() {
     link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
 
     node.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
+      .attr("cy", function(d) { return d.y; });
   });
 });
 
