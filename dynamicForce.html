@@ -112,6 +112,8 @@
             links = force.links();
         //####################################################################
         var update = function () {
+            console.log(nodes);
+            
             var link = vis.selectAll("line")
                     .data(links, function (d) {
                         return d.source.id + "-" + d.target.id;
