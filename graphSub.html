@@ -33,9 +33,9 @@
 <button onclick="reStart()">Restart Animation</button>
 <script>
     // add a method conditionaly
-    if (!('xadd' in Array.prototype)) {
+    if (!('xpush' in Array.prototype)) {
         // push value to array only if not already present
-        Array.prototype.xadd = function(value){
+        Array.prototype.xpush = function(value){
             if(this.indexOf(value) === -1){
                 this.push(value);
             };
@@ -43,7 +43,7 @@
         };
     }
     
-    d3.json("data/miserables.json", function(error, graph) {
+    d3.json("data/miserables.json", function(error, jsonData) {
         if (error) throw error;
         // Code layout uses the functional/module pattern
         // See p52 of Crockfords book
@@ -54,9 +54,10 @@
                 force = d3.layout.force(),
                 nodes = force.nodes(),
                 links = force.links(),
-                graph = graph,
-                vis;
-
+                graph = jsonData,
+                vis,
+                runOnceFlag = true;
+   
             vis = d3.select(elementName)
                     .append("svg:svg")
                     .attr("width", width)
@@ -66,6 +67,11 @@
                     .attr("viewBox", "0 0 " + width + " " + height)
                     .attr("perserveAspectRatio", "xMinYMid")
                     .append('svg:g');
+
+            if (runOnceFlag) {
+                clickHandler(graph.nodes[0], 0);
+                runOnceFlag = false;
+            };
             
             function width(value) {
                 if (!arguments.length) return width;
@@ -79,86 +85,137 @@
                 return chart;
             };
 
+            // add nodes to the layout
             function addNode(nodeObj){
                 nodes.push(nodeObj);
                 update();
-                return chart;
             };
 
             function addLink(source, target, value){
-                links.push({"source": findNode(source), "target": findNode(target), "value": value});
-
+                var link = {"source": findNode(source), "target": findNode(target), "value": value};
+                links.push(link);
+                //console.log(link);
                 update();
-                return chart;
             };
 
-            function findNode(id) {
+            // look for the node in the d3 layout
+            function findNode(name) {
                 for (var i in nodes) {
-                    if (nodes[i]["id"] === id) return nodes[i];
+                    if (nodes[i]["name"] === name) return nodes[i];
                 };
             };
 
-            function removeallLinks() {
+            // remove all links form the layout
+            function removeAllLinks() {
                 links.splice(0, links.length);
                 update();
             };
 
+            // remove all node from the layout
             function removeAllNodes() {
-                nodes.splice(0, links.length);
+                nodes.splice(0, nodes.length);
                 update();
             };
 
-            function getSubNetwork(d, hops){
+            function findNodeIndex(name, nodes) {
+                for (var i = 0; i < graph.nodes.length; i++) {
+                    if (graph.nodes[i].name == name) {
+                        return i;
+                    }
+                };
+            };
+
+            function getSubNetwork(datum, hops){
                 // return all the nodes within the number of 'hops'
                 // initialise variable.
-                var hops = 0,
-                    toVisit = [],
-                    visited = [],
-                    subLinks = [],
-                    current,
-                    result = {};
 
-                toVisit.push(datum[name]); // initialize
-                visited.push(datum[name]); // initialize
+                // chosen to return indice values rarther than actual object
+                // to avoid hidden references to objects tainting the layout data
+                var count = 0,
+                    toVisit = [], // nodes Indices to look for
+                    subNodes = [],// list of node indices
+                    subLinks = [],// list of source target indices
+                    currentIndex,
+                    links = graph.links
+                    nodes = graph.nodes;
 
+                // initialize
+                console.log('datum.name', datum.name, nodes);
+                currentIndex = findNodeIndex(datum.name, nodes); // index of the node
+                if (currentIndex === undefined) throw error;
+
+                toVisit.push(currentIndex); // next node to find
+                subNodes.push(currentIndex); // nodes in the sub network
+
+                // working with raw data from JSON file
                 while((count < hops) || (toVisit.length === 0)){
-                    current = toVisit.pop(toVisit);
+                    currentIndex = toVisit.pop(toVisit);
 
                     for (var i = 0; i < links.length; i++) {
-                        // collect links that 'current' point to
-                        if(links[i].source[name] === current){
-                            // dont store if present, uses underscore.js union
-                            subLinks = _.union([links[i]], subLinks); 
-                            toVisit = _.union([links[i].target[name]], toVisit);
-                            visited = _.union([links[i].target[name]], visited);
+                        // collect links that 'currentIndex' points to
+                        if(links[i].source === currentIndex){
+                            
+                            subLinks.xpush({sourceIndex: currentIndex, targetIndex: links[i].target}); 
+                            toVisit.xpush(links[i].target);
+                            subNodes.xpush(links[i].target);
                         };
                   
-                        // collect the links that point to 'current'
-                        if(links[i].target[name] === current){
-                            // dont store if present, uses underscore.js union
-                            subLinks = _.union([links[i]], subLinks); 
-                            toVisit = _.union([links[i].source[name]], toVisit);
-                            visited = _.union([links[i].source[name]], visited);
+                        // collect the links that point to 'currentIndex'
+                        if(links[i].target === currentIndex){
+                            
+                            subLinks.xpush({sourceIndex: links[i].source, targetIndex: currentIndex}); 
+                            toVisit.xpush(links[i].source);
+                            subNodes.xpush(links[i].source);
                         };
                     };
                     count = count + 1;
                 };
+                console.log('subNodes', subNodes);
+                console.log('subLinks', subLinks);
+
+                return {
+                    'subNodes': subNodes,
+                    'subLinks': subLinks
+                };
             };
 
             function clickHandler(d, i){
-                // get the subnet values
-                update();
+                // clear the nodes and links array
+                removeAllNodes();
+                console.log('layout nodes', nodes);
+                removeAllLinks();
+                console.log('layout links', links);
+                var link,
+                    source,
+                    target;
+
+                // get the subNet values
+                var subNet = getSubNetwork(d, 1);
+                // add the nodes one at a time
+                for (var i = 0; i < subNet.subNodes.length; i++) {
+                    addNode(graph.nodes[subNet.subNodes[i]])
+                };
+                // then add the links
+                for (var i = 0; i < subNet.subLinks.length; i++) {
+                    link = subNet.subLinks[i];
+                    // get objects from JSON data
+                    source = graph.nodes[link.sourceIndex];
+                    target = graph.nodes[link.targetIndex];
+
+                    addLink(source.name, target.name, 1);
+                    
+                };
             };
 
             function update() {
                 var link = vis.selectAll("line")
                         .data(links, function (d) {
-                            return d.source.id + "-" + d.target.id;
+                            return d.source.name + "-" + d.target.name;
                         });
 
                 link.enter().append("line")
                         .attr("id", function (d) {
-                            return d.source.id + "-" + d.target.id;
+                            return d.source.name + "-" + d.target.name;
                         })
                         .attr("stroke-width", function (d) {
                             return d.value / 10;
@@ -186,7 +243,7 @@
                         })
                         .attr("class", "nodeStrokeClass")
                         .attr("fill", function(d) { return color(d.id); })
-                        .on(click, clickHandler);
+                        .on('click', clickHandler);
 
                 nodeEnter.append("svg:text")
                         .attr("class", "textClass")
@@ -223,13 +280,12 @@
                     .charge(-80000)
                     .friction(0)
                     .linkDistance( function(d) { return d.value * 10 } )
-                    .size([w, h])
+                    .size([width, height])
                     .start();
+                };
             };
-        };
-
-        ///
-        chart('body');
+            ///
+            chart('body');
     });
 </script>
 </body>
