@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>graphSub</title>
-    <link rel="stylesheet" href="css/base.css">
     <title>Animating Changes in Force Diagram</title>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
@@ -32,6 +31,7 @@
 <body>
 <button onclick="reStart()">Restart Animation</button>
 <script>
+    //<link rel="stylesheet" href="static/css/base.css">
     // add a method conditionaly
     if (!('xpush' in Array.prototype)) {
         // push value to array only if not already present
@@ -43,7 +43,7 @@
         };
     }
     
-    d3.json("data/miserables.json", function(error, jsonData) {
+    d3.json("data/miserables.json", function(error, graph) {
         if (error) throw error;
         // Code layout uses the functional/module pattern
         // See p52 of Crockfords book
@@ -54,10 +54,9 @@
                 force = d3.layout.force(),
                 nodes = force.nodes(),
                 links = force.links(),
-                graph = jsonData,
                 vis,
                 runOnceFlag = true;
-   
+
             vis = d3.select(elementName)
                     .append("svg:svg")
                     .attr("width", width)
@@ -118,8 +117,8 @@
             };
 
             function findNodeIndex(name, nodes) {
-                for (var i = 0; i < graph.nodes.length; i++) {
-                    if (graph.nodes[i].name == name) {
+                for (var i = 0; i < nodes.length; i++) {
+                    if (nodes[i].name == name) {
                         return i;
                     }
                 };
@@ -135,13 +134,13 @@
                     toVisit = [], // nodes Indices to look for
                     subNodes = [],// list of node indices
                     subLinks = [],// list of source target indices
-                    currentIndex,
-                    links = graph.links
-                    nodes = graph.nodes;
+                    currentIndex;
 
                 // initialize
-                console.log('datum.name', datum.name, nodes);
-                currentIndex = findNodeIndex(datum.name, nodes); // index of the node
+                console.log('datum.name', datum.name);
+                currentIndex = findNodeIndex(datum.name, graph.nodes); // index of the node
+                console.log('currentIndex', currentIndex);
+
                 if (currentIndex === undefined) throw error;
 
                 toVisit.push(currentIndex); // next node to find
@@ -151,21 +150,21 @@
                 while((count < hops) || (toVisit.length === 0)){
                     currentIndex = toVisit.pop(toVisit);
 
-                    for (var i = 0; i < links.length; i++) {
+                    for (var i = 0; i < graph.links.length; i++) {
                         // collect links that 'currentIndex' points to
-                        if(links[i].source === currentIndex){
+                        if(graph.links[i].source === currentIndex){
                             
-                            subLinks.xpush({sourceIndex: currentIndex, targetIndex: links[i].target}); 
-                            toVisit.xpush(links[i].target);
-                            subNodes.xpush(links[i].target);
+                            subLinks.xpush({sourceIndex: currentIndex, targetIndex: graph.links[i].target}); 
+                            toVisit.xpush(graph.links[i].target);
+                            subNodes.xpush(graph.links[i].target);
                         };
                   
                         // collect the links that point to 'currentIndex'
-                        if(links[i].target === currentIndex){
+                        if(graph.links[i].target === currentIndex){
                             
-                            subLinks.xpush({sourceIndex: links[i].source, targetIndex: currentIndex}); 
-                            toVisit.xpush(links[i].source);
-                            subNodes.xpush(links[i].source);
+                            subLinks.xpush({sourceIndex: graph.links[i].source, targetIndex: currentIndex}); 
+                            toVisit.xpush(graph.links[i].source);
+                            subNodes.xpush(graph.links[i].source);
                         };
                     };
                     count = count + 1;
@@ -181,8 +180,10 @@
 
             function clickHandler(d, i){
                 // clear the nodes and links array
-                removeAllNodes();
                 console.log('layout nodes', nodes);
+                console.log('layout links', links);
+                
+                removeAllNodes();
                 removeAllLinks();
                 console.log('layout links', links);
                 var link,
@@ -221,15 +222,17 @@
                             return d.value / 10;
                         })
                         .attr("class", "link");
+                
                 link.append("title")
                         .text(function (d) {
                             return d.value;
                         });
+                
                 link.exit().remove();
 
                 var node = vis.selectAll("g.node")
                         .data(nodes, function (d) {
-                            return d.id;
+                            return d.name;
                         });
 
                 var nodeEnter = node.enter().append("g")
@@ -239,10 +242,10 @@
                 nodeEnter.append("svg:circle")
                         .attr("r", 12)
                         .attr("id", function (d) {
-                            return "Node;" + d.id;
+                            return "Node;" + d.name;
                         })
                         .attr("class", "nodeStrokeClass")
-                        .attr("fill", function(d) { return color(d.id); })
+                        .attr("fill", function(d) { return color(d.group); })
                         .on('click', clickHandler);
 
                 nodeEnter.append("svg:text")
@@ -250,7 +253,7 @@
                         .attr("x", 14)
                         .attr("y", ".31em")
                         .text(function (d) {
-                            return d.id;
+                            return d.name;
                         });
 
                 node.exit().remove();
@@ -279,13 +282,14 @@
                 force.gravity(.01)
                     .charge(-80000)
                     .friction(0)
-                    .linkDistance( function(d) { return d.value * 10 } )
+                    .linkDistance( function(d) { return d.group * 10 } )
                     .size([width, height])
                     .start();
-                };
             };
-            ///
-            chart('body');
+            //update();
+        };
+        ///
+        chart('body');
     });
 </script>
 </body>
