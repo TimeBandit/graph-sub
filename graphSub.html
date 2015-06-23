@@ -43,34 +43,21 @@
         };
     }
     
-    d3.json("data/miserables.json", function(error, graph) {
+    d3.json("data/fm.json", function(error, graph) {
         if (error) throw error;
         // Code layout uses the functional/module pattern
         // See p52 of Crockfords book
         function chart(elementName) {
-            var width = 960, // default width
-                height = 450, // default height
-                color = d3.scale.category10(),
-                force = d3.layout.force(),
-                nodes = force.nodes(),
-                links = force.links(),
-                vis,
-                runOnceFlag = true;
 
-            vis = d3.select(elementName)
-                    .append("svg:svg")
-                    .attr("width", width)
-                    .attr("height", height)
-                    .attr("id", "svg")
-                    .attr("pointer-events", "all")
-                    .attr("viewBox", "0 0 " + width + " " + height)
-                    .attr("perserveAspectRatio", "xMinYMid")
-                    .append('svg:g');
-
-            if (runOnceFlag) {
-                clickHandler(graph.nodes[0], 0);
-                runOnceFlag = false;
-            };
+            // because of the way the network is created, nodes are created first, and links second,
+            // so the lines were on top of the nodes, this just reorders the DOM to put the svg:g on top
+            function keepNodesOnTop() {
+                $(".nodeStrokeClass").each(function( index ) {
+                    var gnode = this.parentNode;
+                    gnode.parentNode.appendChild(gnode);
+                });
+            }
+            
             
             function width(value) {
                 if (!arguments.length) return width;
@@ -87,14 +74,22 @@
             // add nodes to the layout
             function addNode(nodeObj){
                 nodes.push(nodeObj);
+                console.log('addnode',nodes);
                 update();
+                console.log('addnode',nodes);
+                console.log('******');
+                console.log(nodes);      
             };
 
             function addLink(source, target, value){
+                console.log(nodes);
                 var link = {"source": findNode(source), "target": findNode(target), "value": value};
+                console.log(nodes);
                 links.push(link);
-                //console.log(link);
+                console.log(nodes);
+                console.log('######');
                 update();
+                keepNodesOnTop();
             };
 
             // look for the node in the d3 layout
@@ -137,10 +132,8 @@
                     currentIndex;
 
                 // initialize
-                console.log('datum.name', datum.name);
                 currentIndex = findNodeIndex(datum.name, graph.nodes); // index of the node
-                console.log('currentIndex', currentIndex);
-
+                
                 if (currentIndex === undefined) throw error;
 
                 toVisit.push(currentIndex); // next node to find
@@ -169,9 +162,7 @@
                     };
                     count = count + 1;
                 };
-                console.log('subNodes', subNodes);
-                console.log('subLinks', subLinks);
-
+                
                 return {
                     'subNodes': subNodes,
                     'subLinks': subLinks
@@ -180,12 +171,10 @@
 
             function clickHandler(d, i){
                 // clear the nodes and links array
-                console.log('layout nodes', nodes);
-                console.log('layout links', links);
-                
+
                 removeAllNodes();
                 removeAllLinks();
-                console.log('layout links', links);
+                
                 var link,
                     source,
                     target;
@@ -196,16 +185,46 @@
                 for (var i = 0; i < subNet.subNodes.length; i++) {
                     addNode(graph.nodes[subNet.subNodes[i]])
                 };
+
+                keepNodesOnTop();
+                console.log('from clickHandler', nodes);
+
                 // then add the links
                 for (var i = 0; i < subNet.subLinks.length; i++) {
                     link = subNet.subLinks[i];
+
                     // get objects from JSON data
                     source = graph.nodes[link.sourceIndex];
                     target = graph.nodes[link.targetIndex];
-
+//                    console.log(link, source.name, target.name);
                     addLink(source.name, target.name, 1);
-                    
+                      
                 };
+            };
+
+            var width = 960, // default width
+                height = 450, // default height
+                color = d3.scale.category10(),
+                force = d3.layout.force(),
+                nodes = force.nodes(),
+                links = force.links(),
+                vis,
+                runOnceFlag = true;
+
+            vis = d3.select(elementName)
+                    .append("svg:svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("id", "svg")
+                    .attr("pointer-events", "all")
+                    .attr("viewBox", "0 0 " + width + " " + height)
+                    .attr("perserveAspectRatio", "xMinYMid")
+                    .append('svg:g');
+
+
+            if (runOnceFlag) {
+                clickHandler(graph.nodes[0], 0);
+                runOnceFlag = false;
             };
 
             function update() {
@@ -279,9 +298,8 @@
                 });
 
                 // Restart the force layout.
-                force.gravity(.01)
-                    .charge(-80000)
-                    .friction(0)
+                force
+                    .charge(-120)
                     .linkDistance( function(d) { return d.group * 10 } )
                     .size([width, height])
                     .start();
