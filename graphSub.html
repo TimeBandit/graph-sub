@@ -42,7 +42,7 @@
         };
     }
     
-    d3.json("data/miserables.json", function(error, graph) {
+    d3.json("data/fm.json", function(error, graph) {
         if (error) throw error;
         // Code layout uses the functional/module pattern
         // See p52 of Crockfords book
@@ -72,11 +72,7 @@
             // add nodes to the layout
             var addNode = function(nodeObj){
                 nodes.push(nodeObj);
-                //console.log('addnode',nodes);
-                update();
-                //console.log('addnode',nodes);
-                //console.log('******');
-                //console.log(nodes);      
+                update();     
             };
 
             var addLink = function(source, target, value){
@@ -178,7 +174,8 @@
                     target;
 
                 // get the subNet values
-                var subNet = getSubNetwork(d, 1);
+                var subNet = getSubNetwork(d, 2);
+                //console.log
                 // add the nodes one at a time
                 for (var i = 0; i < subNet.subNodes.length; i++) {
                     addNode(graph.nodes[subNet.subNodes[i]])
@@ -194,7 +191,7 @@
                     // get objects from JSON data
                     source = graph.nodes[link.sourceIndex];
                     target = graph.nodes[link.targetIndex];
-                    addLink(source.name, target.name, 1);
+                    addLink(source.name, target.name, 2);
                       
                 };
             };
@@ -273,7 +270,6 @@
                 force.on("tick", function () {
 
                     node.attr("transform", function (d) {
-                        console.log(d);
                         return "translate(" + d.x + "," + d.y + ")";
                     }); 
                     
@@ -293,8 +289,10 @@
 
                 // Restart the force layout.
                 force
-                    .charge(-120)
-                    .linkDistance( function(d) { return d.value * 100 } )
+                    .gravity(.02)
+                    .charge(-8000)
+                    .friction(0.1)    
+                    .linkDistance( function(d) { return d.value * 10 } )
                     .size([width, height])
                     .start();
             };
@@ -309,6 +307,7 @@
                 console.log(nodes);
                 console.log(links);
                 var c = {"source": findNode('Napoleon'), "target": findNode('Myriel'), value: 1}
+                //var c = {"source": findNode('a'), "target": findNode('b'), value: 1}
                 links.push(c);
                 update();
                 
