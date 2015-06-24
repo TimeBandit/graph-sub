@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>graphSub</title>
     <title>Animating Changes in Force Diagram</title>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/d3.v3.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="static/js/graphSub.js" charset="utf-8"></script>
     <style>
         .link {
             stroke: #2E2E2E;
@@ -43,7 +42,7 @@
         };
     }
     
-    d3.json("data/fm.json", function(error, graph) {
+    d3.json("data/miserables.json", function(error, graph) {
         if (error) throw error;
         // Code layout uses the functional/module pattern
         // See p52 of Crockfords book
@@ -51,67 +50,66 @@
 
             // because of the way the network is created, nodes are created first, and links second,
             // so the lines were on top of the nodes, this just reorders the DOM to put the svg:g on top
-            function keepNodesOnTop() {
+            var keepNodesOnTop = function() {
                 $(".nodeStrokeClass").each(function( index ) {
                     var gnode = this.parentNode;
                     gnode.parentNode.appendChild(gnode);
                 });
-            }
+            };            
             
-            
-            function width(value) {
+            var width = function(value) {
                 if (!arguments.length) return width;
                 width = value;
-                return chart;
+                return chart; // enable chaining
             };
 
-            function height(value) {
+            var height = function(value) {
                 if (!arguments.length) return height;
                 height = value;
-                return chart;
+                return chart; // enable chaining
             };
 
             // add nodes to the layout
-            function addNode(nodeObj){
+            var addNode = function(nodeObj){
                 nodes.push(nodeObj);
-                console.log('addnode',nodes);
+                //console.log('addnode',nodes);
                 update();
-                console.log('addnode',nodes);
-                console.log('******');
-                console.log(nodes);      
+                //console.log('addnode',nodes);
+                //console.log('******');
+                //console.log(nodes);      
             };
 
-            function addLink(source, target, value){
-                console.log(nodes);
+            var addLink = function(source, target, value){
+                //console.log(nodes);
                 var link = {"source": findNode(source), "target": findNode(target), "value": value};
-                console.log(nodes);
+                //console.log(nodes);
                 links.push(link);
-                console.log(nodes);
-                console.log('######');
+                //console.log(nodes);
+                //console.log('######');
                 update();
                 keepNodesOnTop();
             };
 
             // look for the node in the d3 layout
-            function findNode(name) {
+            var findNode = function(name) {
                 for (var i in nodes) {
                     if (nodes[i]["name"] === name) return nodes[i];
                 };
             };
 
             // remove all links form the layout
-            function removeAllLinks() {
+            var removeAllLinks = function() {
                 links.splice(0, links.length);
                 update();
             };
 
             // remove all node from the layout
-            function removeAllNodes() {
+            var removeAllNodes = function() {
                 nodes.splice(0, nodes.length);
                 update();
             };
 
-            function findNodeIndex(name, nodes) {
+            var findNodeIndex = function(name, nodes) {
                 for (var i = 0; i < nodes.length; i++) {
                     if (nodes[i].name == name) {
                         return i;
@@ -119,7 +117,7 @@
                 };
             };
 
-            function getSubNetwork(datum, hops){
+            var getSubNetwork = function(datum, hops){
                 // return all the nodes within the number of 'hops'
                 // initialise variable.
 
@@ -169,7 +167,7 @@
                 };
             };
 
-            function clickHandler(d, i){
+            var clickHandler = function(d, i){
                 // clear the nodes and links array
 
                 removeAllNodes();
@@ -196,7 +194,6 @@
                     // get objects from JSON data
                     source = graph.nodes[link.sourceIndex];
                     target = graph.nodes[link.targetIndex];
-//                    console.log(link, source.name, target.name);
                     addLink(source.name, target.name, 1);
                       
                 };
@@ -219,20 +216,16 @@
                     .attr("pointer-events", "all")
                     .attr("viewBox", "0 0 " + width + " " + height)
                     .attr("perserveAspectRatio", "xMinYMid")
-                    .append('svg:g');
+                    .append('svg:g');            
 
-
-            if (runOnceFlag) {
-                clickHandler(graph.nodes[0], 0);
-                runOnceFlag = false;
-            };
-
-            function update() {
+            var update = function() {
+                force.start();
+                
                 var link = vis.selectAll("line")
                         .data(links, function (d) {
                             return d.source.name + "-" + d.target.name;
                         });
-
+                
                 link.enter().append("line")
                         .attr("id", function (d) {
                             return d.source.name + "-" + d.target.name;
@@ -280,9 +273,10 @@
                 force.on("tick", function () {
 
                     node.attr("transform", function (d) {
+                        console.log(d);
                         return "translate(" + d.x + "," + d.y + ")";
-                    });
-
+                    }); 
+                    
                     link.attr("x1", function (d) {
                         return d.source.x;
                     })
@@ -294,17 +288,33 @@
                             })
                             .attr("y2", function (d) {
                                 return d.target.y;
-                            });
+                            }); 
                 });
 
                 // Restart the force layout.
                 force
                     .charge(-120)
-                    .linkDistance( function(d) { return d.group * 10 } )
+                    .linkDistance( function(d) { return d.value * 100 } )
                     .size([width, height])
                     .start();
             };
-            //update();
+
+            if (runOnceFlag) {
+                var a = graph.nodes[0];
+                var b = graph.nodes[1]
+                nodes.push(a);
+                update();
+                nodes.push(b);
+                update();
+                console.log(nodes);
+                console.log(links);
+                var c = {"source": findNode('Napoleon'), "target": findNode('Myriel'), value: 1}
+                links.push(c);
+                update();
+                
+                runOnceFlag = false;
+
+            };
         };
         ///
         chart('body');
