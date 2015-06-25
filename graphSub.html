@@ -42,7 +42,7 @@
         };
     }
     
-    d3.json("data/fm.json", function(error, graph) {
+    d3.json("data/miserables.json", function(error, graph) {
         if (error) throw error;
         // Code layout uses the functional/module pattern
         // See p52 of Crockfords book
@@ -81,9 +81,9 @@
                 //console.log(nodes);
                 links.push(link);
                 //console.log(nodes);
-                //console.log('######');
+                //onsole.log('######');
                 update();
-                keepNodesOnTop();
+                
             };
 
             // look for the node in the d3 layout
@@ -111,6 +111,29 @@
                         return i;
                     }
                 };
+            };
+
+            var rn = [];
+            var rl = []
+            var nodesVisited = function(currentIndex, hops){
+                //console.log('index', currentIndex, 'hops', hops);
+                rn.xpush(currentIndex);
+                    
+                if (hops === 0) {
+                    return rn;
+                };
+
+                for (var i = 0; i < graph.links.length; i++) {
+
+                    if (currentIndex === graph.links[i].source) {
+                        rl.xpush(JSON.stringify(graph.links[i]));
+                        nodesVisited(graph.links[i].target, hops - 1)
+                    };
+                    if (currentIndex === graph.links[i].target) {
+                        rl.xpush(JSON.stringify(graph.links[i]));
+                        nodesVisited(graph.links[i].source, hops - 1)
+                    };
+                };                
             };
 
             var getSubNetwork = function(datum, hops){
@@ -153,7 +176,9 @@
                             toVisit.xpush(graph.links[i].source);
                             subNodes.xpush(graph.links[i].source);
                         };
+                        //console.log('currentIndex->', currentIndex, 'count->', count, 'toVisit->', toVisit, 'result->', subNodes, subLinks);
                     };
+                    
                     count = count + 1;
                 };
                 
@@ -175,22 +200,24 @@
 
                 // get the subNet values
                 var subNet = getSubNetwork(d, 2);
-                //console.log
+
+                rn = [],
+                rl = [];
+                var index = findNodeIndex(d.name, graph.nodes);
+                nodesVisited(index, 1);
+                console.log(rn, rl);
                 // add the nodes one at a time
-                for (var i = 0; i < subNet.subNodes.length; i++) {
-                    addNode(graph.nodes[subNet.subNodes[i]])
+                for (var i = 0; i < rn.length; i++) {
+                    addNode(graph.nodes[rn[i]])
                 };
-
-                keepNodesOnTop();
-                console.log('from clickHandler', nodes);
-
+                
                 // then add the links
-                for (var i = 0; i < subNet.subLinks.length; i++) {
-                    link = subNet.subLinks[i];
+                for (var i = 0; i < rl.length; i++) {
+                    link = JSON.parse(rl[i]);
 
                     // get objects from JSON data
-                    source = graph.nodes[link.sourceIndex];
-                    target = graph.nodes[link.targetIndex];
+                    source = graph.nodes[link.source];
+                    target = graph.nodes[link.target];
                     addLink(source.name, target.name, 2);
                       
                 };
@@ -223,7 +250,8 @@
                             return d.source.name + "-" + d.target.name;
                         });
                 
-                link.enter().append("line")
+                //link.enter().append("line")
+                link.enter().insert("line", "g")
                         .attr("id", function (d) {
                             return d.source.name + "-" + d.target.name;
                         })
@@ -255,7 +283,7 @@
                         })
                         .attr("class", "nodeStrokeClass")
                         .attr("fill", function(d) { return color(d.group); })
-                        .on('click', clickHandler);
+                        .on('dblclick', clickHandler);
 
                 nodeEnter.append("svg:text")
                         .attr("class", "textClass")
@@ -289,10 +317,8 @@
 
                 // Restart the force layout.
                 force
-                    .gravity(.02)
-                    .charge(-8000)
-                    .friction(0.1)    
-                    .linkDistance( function(d) { return d.value * 10 } )
+                    .charge(-800)
+                    .linkDistance(30)
                     .size([width, height])
                     .start();
             };
