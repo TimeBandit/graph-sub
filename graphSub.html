@@ -42,21 +42,11 @@
         };
     }
     
-    d3.json("data/miserables.json", function(error, graph) {
+    d3.json("data/fm.json", function(error, graph) {
         if (error) throw error;
-        // Code layout uses the functional/module pattern
-        // See p52 of Crockfords book
+        
         function chart(elementName) {
 
-            // because of the way the network is created, nodes are created first, and links second,
-            // so the lines were on top of the nodes, this just reorders the DOM to put the svg:g on top
-            var keepNodesOnTop = function() {
-                $(".nodeStrokeClass").each(function( index ) {
-                    var gnode = this.parentNode;
-                    gnode.parentNode.appendChild(gnode);
-                });
-            };            
-            
             var width = function(value) {
                 if (!arguments.length) return width;
                 width = value;
@@ -70,18 +60,15 @@
             };
 
             // add nodes to the layout
-            var addNode = function(nodeObj){
-                nodes.push(nodeObj);
+            var addNode = function(node){
+                nodes.push(node);
                 update();     
             };
 
+            // add link to the layout
             var addLink = function(source, target, value){
-                //console.log(nodes);
                 var link = {"source": findNode(source), "target": findNode(target), "value": value};
-                //console.log(nodes);
                 links.push(link);
-                //console.log(nodes);
-                //onsole.log('######');
                 update();
                 
             };
@@ -113,109 +100,51 @@
                 };
             };
 
-            var rn = [];
-            var rl = []
             var nodesVisited = function(currentIndex, hops){
-                //console.log('index', currentIndex, 'hops', hops);
-                rn.xpush(currentIndex);
-                    
+                // links stored as JSON objects, easy to compare
+                subNetNodes.xpush(currentIndex);
+
                 if (hops === 0) {
-                    return rn;
+                    return;
                 };
 
                 for (var i = 0; i < graph.links.length; i++) {
 
                     if (currentIndex === graph.links[i].source) {
-                        rl.xpush(JSON.stringify(graph.links[i]));
+                        subNetLinks.xpush(JSON.stringify(graph.links[i]));
                         nodesVisited(graph.links[i].target, hops - 1)
                     };
                     if (currentIndex === graph.links[i].target) {
-                        rl.xpush(JSON.stringify(graph.links[i]));
+                        subNetLinks.xpush(JSON.stringify(graph.links[i]));
                         nodesVisited(graph.links[i].source, hops - 1)
                     };
                 };                
             };
 
-            var getSubNetwork = function(datum, hops){
-                // return all the nodes within the number of 'hops'
-                // initialise variable.
-
-                // chosen to return indice values rarther than actual object
-                // to avoid hidden references to objects tainting the layout data
-                var count = 0,
-                    toVisit = [], // nodes Indices to look for
-                    subNodes = [],// list of node indices
-                    subLinks = [],// list of source target indices
-                    currentIndex;
-
-                // initialize
-                currentIndex = findNodeIndex(datum.name, graph.nodes); // index of the node
-                
-                if (currentIndex === undefined) throw error;
-
-                toVisit.push(currentIndex); // next node to find
-                subNodes.push(currentIndex); // nodes in the sub network
-
-                // working with raw data from JSON file
-                while((count < hops) || (toVisit.length === 0)){
-                    currentIndex = toVisit.pop(toVisit);
-
-                    for (var i = 0; i < graph.links.length; i++) {
-                        // collect links that 'currentIndex' points to
-                        if(graph.links[i].source === currentIndex){
-                            
-                            subLinks.xpush({sourceIndex: currentIndex, targetIndex: graph.links[i].target}); 
-                            toVisit.xpush(graph.links[i].target);
-                            subNodes.xpush(graph.links[i].target);
-                        };
-                  
-                        // collect the links that point to 'currentIndex'
-                        if(graph.links[i].target === currentIndex){
-                            
-                            subLinks.xpush({sourceIndex: graph.links[i].source, targetIndex: currentIndex}); 
-                            toVisit.xpush(graph.links[i].source);
-                            subNodes.xpush(graph.links[i].source);
-                        };
-                        //console.log('currentIndex->', currentIndex, 'count->', count, 'toVisit->', toVisit, 'result->', subNodes, subLinks);
-                    };
-                    
-                    count = count + 1;
-                };
-                
-                return {
-                    'subNodes': subNodes,
-                    'subLinks': subLinks
-                };
-            };
-
             var clickHandler = function(d, i){
-                // clear the nodes and links array
-
+                // init
                 removeAllNodes();
                 removeAllLinks();
+                subNetNodes = [],
+                subNetLinks = [];
                 
                 var link,
                     source,
                     target;
 
-                // get the subNet values
-                var subNet = getSubNetwork(d, 2);
-
-                rn = [],
-                rl = [];
                 var index = findNodeIndex(d.name, graph.nodes);
-                nodesVisited(index, 1);
-                console.log(rn, rl);
-                // add the nodes one at a time
-                for (var i = 0; i < rn.length; i++) {
-                    addNode(graph.nodes[rn[i]])
+                nodesVisited(index, 2);
+                console.log(subNetNodes, subNetLinks);
+                
+                // add the nodes incrementaly
+                for (var i = 0; i < subNetNodes.length; i++) {
+                    addNode(graph.nodes[subNetNodes[i]])
                 };
                 
-                // then add the links
-                for (var i = 0; i < rl.length; i++) {
-                    link = JSON.parse(rl[i]);
+                // add links incrementaly
+                for (var i = 0; i < subNetLinks.length; i++) {
+                    link = JSON.parse(subNetLinks[i]);
 
-                    // get objects from JSON data
                     source = graph.nodes[link.source];
                     target = graph.nodes[link.target];
                     addLink(source.name, target.name, 2);
@@ -230,6 +159,8 @@
                 nodes = force.nodes(),
                 links = force.links(),
                 vis,
+                subNetNodes = [],
+                subNetLinks = [],
                 runOnceFlag = true;
 
             vis = d3.select(elementName)
@@ -250,7 +181,6 @@
                             return d.source.name + "-" + d.target.name;
                         });
                 
-                //link.enter().append("line")
                 link.enter().insert("line", "g")
                         .attr("id", function (d) {
                             return d.source.name + "-" + d.target.name;
@@ -326,14 +256,14 @@
             if (runOnceFlag) {
                 var a = graph.nodes[0];
                 var b = graph.nodes[1]
+                
                 nodes.push(a);
                 update();
                 nodes.push(b);
                 update();
-                console.log(nodes);
-                console.log(links);
-                var c = {"source": findNode('Napoleon'), "target": findNode('Myriel'), value: 1}
-                //var c = {"source": findNode('a'), "target": findNode('b'), value: 1}
+                
+                //var c = {"source": findNode('Napoleon'), "target": findNode('Myriel'), value: 1}
+                var c = {"source": findNode('a'), "target": findNode('b'), value: 1}
                 links.push(c);
                 update();
                 
