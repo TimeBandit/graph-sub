@@ -61,15 +61,19 @@
 
             // add nodes to the layout
             var addNode = function(node){
+                //node.fixed = true;
+                //node.x = 100;
+                //node.y = 100;
+                console.table(node);  
                 nodes.push(node);
-                update();     
+                //update();     
             };
 
             // add link to the layout
             var addLink = function(source, target, value){
                 var link = {"source": findNode(source), "target": findNode(target), "value": value};
                 links.push(link);
-                update();
+                //update();
                 
             };
 
@@ -100,7 +104,7 @@
                 };
             };
 
-            var nodesVisited = function(currentIndex, hops){
+            var subNet = function(currentIndex, hops){
                 // links stored as JSON objects, easy to compare
                 subNetNodes.xpush(currentIndex);
 
@@ -112,11 +116,11 @@
 
                     if (currentIndex === graph.links[i].source) {
                         subNetLinks.xpush(JSON.stringify(graph.links[i]));
-                        nodesVisited(graph.links[i].target, hops - 1)
+                        subNet(graph.links[i].target, hops - 1)
                     };
                     if (currentIndex === graph.links[i].target) {
                         subNetLinks.xpush(JSON.stringify(graph.links[i]));
-                        nodesVisited(graph.links[i].source, hops - 1)
+                        subNet(graph.links[i].source, hops - 1)
                     };
                 };                
             };
@@ -132,15 +136,27 @@
                     source,
                     target;
 
-                var index = findNodeIndex(d.name, graph.nodes);
-                nodesVisited(index, 2);
-                console.log(subNetNodes, subNetLinks);
+                subNet(findNodeIndex(d.name, graph.nodes), 3);
                 
+                console.log(graph.nodes[subNetNodes[0]]);
                 // add the nodes incrementaly
                 for (var i = 0; i < subNetNodes.length; i++) {
+                    //if (i === 0) {};
                     addNode(graph.nodes[subNetNodes[i]])
                 };
-                
+/*
+                nodes.forEach(function(n) { 
+                    if(n.name === d.name) {
+                        n.fixed = true;
+                        n.x = width/2;
+                        n.y = height/2;     
+                    }else{
+                        n.fixed = false
+                    };
+                    
+                });
+*/
+                //update();
                 // add links incrementaly
                 for (var i = 0; i < subNetLinks.length; i++) {
                     link = JSON.parse(subNetLinks[i]);
@@ -150,6 +166,8 @@
                     addLink(source.name, target.name, 2);
                       
                 };
+                update();
+                //console.log(nodes);
             };
 
             var width = 960, // default width
@@ -174,14 +192,16 @@
                     .append('svg:g');            
 
             var update = function() {
-                force.start();
-                
                 var link = vis.selectAll("line")
                         .data(links, function (d) {
                             return d.source.name + "-" + d.target.name;
                         });
                 
                 link.enter().insert("line", "g")
+                        .transition()   
+                        .delay(function (d, i) {
+                            return i*100;
+                        })
                         .attr("id", function (d) {
                             return d.source.name + "-" + d.target.name;
                         })
@@ -202,18 +222,20 @@
                             return d.name;
                         });
 
-                var nodeEnter = node.enter().append("g")
+                var nodeEnter = node.enter()
+                        .append("g")
                         .attr("class", "node")
                         .call(force.drag);
 
-                nodeEnter.append("svg:circle")
+                nodeEnter
+                        .append("svg:circle")
                         .attr("r", 12)
                         .attr("id", function (d) {
                             return "Node;" + d.name;
                         })
                         .attr("class", "nodeStrokeClass")
                         .attr("fill", function(d) { return color(d.group); })
-                        .on('dblclick', clickHandler);
+                        .on('click', clickHandler);
 
                 nodeEnter.append("svg:text")
                         .attr("class", "textClass")
@@ -243,6 +265,10 @@
                             .attr("y2", function (d) {
                                 return d.target.y;
                             }); 
+                });
+
+                force.on("end", function () {
+                    console.log(d3.event);
                 });
 
                 // Restart the force layout.
