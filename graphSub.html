@@ -59,12 +59,19 @@
                 return chart; // enable chaining
             };
 
+            var resize = function() {
+                var svg = d3.select(elementName).append("svg");
+                width = window.innerWidth, height = window.innerHeight;
+                vis.attr("width", width).attr("height", height);
+                force.size([width, height]).resume();
+            }
+
             // add nodes to the layout
             var addNode = function(node){
                 //node.fixed = true;
-                //node.x = 100;
-                //node.y = 100;
-                console.table(node);  
+                //node.x = width/2;
+                //node.y = height/2;
+                //console.table(node);  
                 nodes.push(node);
                 //update();     
             };
@@ -126,11 +133,13 @@
             };
 
             var clickHandler = function(d, i){
+                console.log(d3.event, this);
                 // init
                 removeAllNodes();
                 removeAllLinks();
                 subNetNodes = [],
                 subNetLinks = [];
+                clikedNode = this;
                 
                 var link,
                     source,
@@ -144,19 +153,8 @@
                     //if (i === 0) {};
                     addNode(graph.nodes[subNetNodes[i]])
                 };
-/*
-                nodes.forEach(function(n) { 
-                    if(n.name === d.name) {
-                        n.fixed = true;
-                        n.x = width/2;
-                        n.y = height/2;     
-                    }else{
-                        n.fixed = false
-                    };
-                    
-                });
-*/
-                //update();
+
+                
                 // add links incrementaly
                 for (var i = 0; i < subNetLinks.length; i++) {
                     link = JSON.parse(subNetLinks[i]);
@@ -167,8 +165,11 @@
                       
                 };
                 update();
+                //force.resume();
                 //console.log(nodes);
             };
+
+            d3.select(window).on("resize", resize)
 
             var width = 960, // default width
                 height = 450, // default height
@@ -179,7 +180,8 @@
                 vis,
                 subNetNodes = [],
                 subNetLinks = [],
-                runOnceFlag = true;
+                runOnceFlag = true,
+                clikedNode;
 
             vis = d3.select(elementName)
                     .append("svg:svg")
@@ -189,7 +191,12 @@
                     .attr("pointer-events", "all")
                     .attr("viewBox", "0 0 " + width + " " + height)
                     .attr("perserveAspectRatio", "xMinYMid")
-                    .append('svg:g');            
+                    .on("click", mouseclick)
+                    .append('svg:g');
+
+            function mouseclick() {
+                console.log(d3.mouse(this));
+            }       
 
             var update = function() {
                 var link = vis.selectAll("line")
@@ -249,6 +256,8 @@
 
                 force.on("tick", function () {
 
+                    //node.attr("cx", function(d) { return d.x; })
+                    //    .attr("cy", function(d) { return d.y; });
                     node.attr("transform", function (d) {
                         return "translate(" + d.x + "," + d.y + ")";
                     }); 
@@ -268,13 +277,16 @@
                 });
 
                 force.on("end", function () {
-                    console.log(d3.event);
+                    d3.select(clikedNode)
+                        .transition()
+                        .delay(1000)
+                        .attr("r", 50);
                 });
 
                 // Restart the force layout.
                 force
                     .charge(-800)
-                    .linkDistance(30)
+                    .linkDistance(20)
                     .size([width, height])
                     .start();
             };
