@@ -29,9 +29,7 @@
     </style>
 </head>
 <body>
-<button onclick="reStart()">Restart Animation</button>
 <script>
-    //<link rel="stylesheet" href="static/css/base.css">
     // add a method conditionaly
     if (!('xpush' in Array.prototype)) {
         // push value to array only if not already present
@@ -108,7 +106,8 @@
             var subNet = function(currentIndex, hops){
                 // links stored as JSON objects, easy to compare
                 // operates on the data loaded from the JSON
-                // extracts a subset of the original data
+                // extract subnet around 'currentIndex' with all nodes up to 2 'hops' steps away.
+
                 var n = graph.nodes[currentIndex];
                 subNetNodes.xpush(n);
 
@@ -153,10 +152,13 @@
                 };
 
                 // setting the initial positions of the nodes
-                force.nodes().forEach(function(){
-                    this.x = width/2;
-                    this.y = height/2;
-                });
+                // subNetNodes.forEach(function(d, i, array){
+                //     var angle = Math.random*Math.PI*2;
+                //     var x = Math.cos(angle)*20;
+                //     var y = Math.cos(angle)*20;
+                //     d.x = width/2 + x;
+                //     d.y = height/2 + y;
+                // });
                 update();
                 //console.log(nodes);
             };
@@ -202,7 +204,7 @@
                 link.enter().insert("line", "g")
                         .transition()   
                         .delay(function (d, i) {
-                            return i*100;
+                            return 1000;
                         })
                         .attr("id", function (d) {
                             return d.source.name + "-" + d.target
@@ -252,12 +254,19 @@
 
                 // Restart the force layout.
                 force
-                    .charge(-500)
-                    .linkDistance(15)
+                    .charge(-150)
+                    .linkDistance(50)
                     .size([width, height])
                     .start();                
 
-                force.on("tick", function () {
+                force.on("tick", function (e) {
+
+                    // Push sources up and targets down to form a weak tree.
+                    var k = 16 * e.alpha;
+                    subNetLinks.forEach(function(d, i) {
+                        d.source.y -= k;
+                        d.target.y += k;
+                    });
 
                     node.attr("transform", function (d) {
                         //console.log('**', d);
