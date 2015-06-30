@@ -8,6 +8,7 @@
     <title>Animating Changes in Force Diagram</title>
     <script src="http://d3js.org/d3.v3.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://livejs.com/live.js"></script>
     <style>
         .link {
             stroke: #2E2E2E;
@@ -68,39 +69,32 @@
 
             // add nodes to the layout
             var addNode = function(node){
-                //node.fixed = true;
-                //node.x = width/2;
-                //node.y = height/2;
-                //console.table(node);  
-                nodes.push(node);
-                //update();     
+                nodes.push(node);                
             };
 
             // add link to the layout
             var addLink = function(source, target, value){
                 var link = {"source": findNode(source), "target": findNode(target), "value": value};
-                links.push(link);
-                //update();
-                
+                subNetLinks.push(link);
             };
 
             // look for the node in the d3 layout
             var findNode = function(name) {
-                for (var i in nodes) {
-                    if (nodes[i]["name"] === name) return nodes[i];
+                for (var i in subNetNodes) {
+                    if (subNetNodes[i]["name"] === name) return subNetNodes[i];
                 };
             };
 
             // remove all links form the layout
             var removeAllLinks = function() {
-                links.splice(0, links.length);
-                update();
+                subNetLinks.splice(0, subNetLinks.length);
+                //update();
             };
 
             // remove all node from the layout
             var removeAllNodes = function() {
-                nodes.splice(0, nodes.length);
-                update();
+                subNetNodes.splice(0, subNetNodes.length);
+                //update();
             };
 
             var findNodeIndex = function(name, nodes) {
@@ -113,7 +107,10 @@
 
             var subNet = function(currentIndex, hops){
                 // links stored as JSON objects, easy to compare
-                subNetNodes.xpush(currentIndex);
+                // operates on the data loaded from the JSON
+                // extracts a subset of the original data
+                var n = graph.nodes[currentIndex];
+                subNetNodes.xpush(n);
 
                 if (hops === 0) {
                     return;
@@ -122,50 +119,45 @@
                 for (var i = 0; i < graph.links.length; i++) {
 
                     if (currentIndex === graph.links[i].source) {
-                        subNetLinks.xpush(JSON.stringify(graph.links[i]));
+                        tempLinks.xpush(JSON.stringify(graph.links[i]));
                         subNet(graph.links[i].target, hops - 1)
                     };
                     if (currentIndex === graph.links[i].target) {
-                        subNetLinks.xpush(JSON.stringify(graph.links[i]));
+                        tempLinks.xpush(JSON.stringify(graph.links[i]));
                         subNet(graph.links[i].source, hops - 1)
                     };
                 };                
             };
 
             var clickHandler = function(d, i){
-                console.log(d3.event, this);
                 // init
-                removeAllNodes();
-                removeAllLinks();
-                subNetNodes = [],
-                subNetLinks = [];
-                clikedNode = this;
+                removeAllNodes(); // clears force.nodes()
+                removeAllLinks(); // clears force.links()
+                tempLinks = [];
                 
                 var link,
                     source,
                     target;
 
-                subNet(findNodeIndex(d.name, graph.nodes), 3);
+                // extract subnet around 'd' with all nodes up to 2 hops away
+                subNet(findNodeIndex(d.name, graph.nodes), 2);
                 
-                console.log(graph.nodes[subNetNodes[0]]);
-                // add the nodes incrementaly
-                for (var i = 0; i < subNetNodes.length; i++) {
-                    //if (i === 0) {};
-                    addNode(graph.nodes[subNetNodes[i]])
-                };
-
-                
-                // add links incrementaly
-                for (var i = 0; i < subNetLinks.length; i++) {
-                    link = JSON.parse(subNetLinks[i]);
+                //add links incrementaly
+                for (var i = 0; i < tempLinks.length; i++) {
+                    link = JSON.parse(tempLinks[i]);
 
                     source = graph.nodes[link.source];
                     target = graph.nodes[link.target];
                     addLink(source.name, target.name, 2);
                       
                 };
+
+                // setting the initial positions of the nodes
+                force.nodes().forEach(function(){
+                    this.x = width/2;
+                    this.y = height/2;
+                });
                 update();
-                //force.resume();
                 //console.log(nodes);
             };
 
@@ -175,11 +167,10 @@
                 height = 450, // default height
                 color = d3.scale.category10(),
                 force = d3.layout.force(),
-                nodes = force.nodes(),
-                links = force.links(),
+                subNetNodes = force.nodes(),
+                subNetLinks = force.links(),
+                tempLinks = [],
                 vis,
-                subNetNodes = [],
-                subNetLinks = [],
                 runOnceFlag = true,
                 clikedNode;
 
@@ -189,19 +180,23 @@
                     .attr("height", height)
                     .attr("id", "svg")
                     .attr("pointer-events", "all")
-                    .attr("viewBox", "0 0 " + width + " " + height)
-                    .attr("perserveAspectRatio", "xMinYMid")
-                    .on("click", mouseclick)
                     .append('svg:g');
-
-            function mouseclick() {
-                console.log(d3.mouse(this));
-            }       
+                    // .attr("viewBox", "0 0 " + width + " " + height)
+                    // .attr("perserveAspectRatio", "xMinYMid")
 
             var update = function() {
+
+                console.log('update', force.nodes(), force.links());
+
                 var link = vis.selectAll("line")
-                        .data(links, function (d) {
-                            return d.source.name + "-" + d.target.name;
+                        .data(subNetLinks, function (d) {
+                            console.log('update', typeof(d.source), d);
+                            if (typeof(d.source) === 'number') {
+                                return subNetNodes[d.source].name + "-" + subNetNodes[d.target].name;
+                            }else{
+                                return d.source.name + "-" + d.target.name;
+                            };
+                            
                         });
                 
                 link.enter().insert("line", "g")
@@ -210,7 +205,8 @@
                             return i*100;
                         })
                         .attr("id", function (d) {
-                            return d.source.name + "-" + d.target.name;
+                            return d.source.name + "-" + d.target
+                            .name;
                         })
                         .attr("stroke-width", function (d) {
                             return d.value / 10;
@@ -225,7 +221,7 @@
                 link.exit().remove();
 
                 var node = vis.selectAll("g.node")
-                        .data(nodes, function (d) {
+                        .data(subNetNodes, function (d) {
                             return d.name;
                         });
 
@@ -254,11 +250,17 @@
 
                 node.exit().remove();
 
+                // Restart the force layout.
+                force
+                    .charge(-500)
+                    .linkDistance(15)
+                    .size([width, height])
+                    .start();                
+
                 force.on("tick", function () {
 
-                    //node.attr("cx", function(d) { return d.x; })
-                    //    .attr("cy", function(d) { return d.y; });
                     node.attr("transform", function (d) {
+                        //console.log('**', d);
                         return "translate(" + d.x + "," + d.y + ")";
                     }); 
                     
@@ -274,39 +276,21 @@
                             .attr("y2", function (d) {
                                 return d.target.y;
                             }); 
-                });
-
-                force.on("end", function () {
-                    d3.select(clikedNode)
-                        .transition()
-                        .delay(1000)
-                        .attr("r", 50);
-                });
-
-                // Restart the force layout.
-                force
-                    .charge(-800)
-                    .linkDistance(20)
-                    .size([width, height])
-                    .start();
+                });                
             };
 
             if (runOnceFlag) {
                 var a = graph.nodes[0];
-                var b = graph.nodes[1]
+                var b = graph.nodes[1];
                 
-                nodes.push(a);
-                update();
-                nodes.push(b);
-                update();
+                //console.log(subNetNodes, subNetLinks);
+                subNetNodes.push(a);
+                subNetNodes.push(b);
                 
-                //var c = {"source": findNode('Napoleon'), "target": findNode('Myriel'), value: 1}
-                var c = {"source": findNode('a'), "target": findNode('b'), value: 1}
-                links.push(c);
+                var c = {"source":0,"target":1,"value":1};
+                subNetLinks.push(c);
                 update();
-                
                 runOnceFlag = false;
-
             };
         };
         ///
