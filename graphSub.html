@@ -139,8 +139,16 @@
                     target;
 
                 // extract subnet around 'd' with all nodes up to 2 hops away
-                subNet(findNodeIndex(d.name, graph.nodes), 2);
-                
+                subNet(findNodeIndex(d.name, graph.nodes), 1);
+                // setting the initial positions of the nodes
+                // subNetNodes.forEach(function(d, i, array){
+                //     var angle = Math.random*Math.PI*2;
+                //     var x = Math.cos(angle)*20;
+                //     var y = Math.cos(angle)*20;
+                //     d.x = width/2 + x;
+                //     d.y = height/2 + y;
+                // });
+                update();   
                 //add links incrementaly
                 for (var i = 0; i < tempLinks.length; i++) {
                     link = JSON.parse(tempLinks[i]);
@@ -151,22 +159,15 @@
                       
                 };
 
-                // setting the initial positions of the nodes
-                // subNetNodes.forEach(function(d, i, array){
-                //     var angle = Math.random*Math.PI*2;
-                //     var x = Math.cos(angle)*20;
-                //     var y = Math.cos(angle)*20;
-                //     d.x = width/2 + x;
-                //     d.y = height/2 + y;
-                // });
+                
                 update();
                 //console.log(nodes);
             };
 
             d3.select(window).on("resize", resize)
 
-            var width = 960, // default width
-                height = 450, // default height
+            var width = 1000, // default width
+                height = 500, // default height
                 color = d3.scale.category10(),
                 force = d3.layout.force(),
                 subNetNodes = force.nodes(),
@@ -182,9 +183,10 @@
                     .attr("height", height)
                     .attr("id", "svg")
                     .attr("pointer-events", "all")
+                    .attr("viewBox", "0 0 " + 1000 + " " + 500)
+                    .attr("perserveAspectRatio", "xMinYMid")
                     .append('svg:g');
-                    // .attr("viewBox", "0 0 " + width + " " + height)
-                    // .attr("perserveAspectRatio", "xMinYMid")
+                    
 
             var update = function() {
 
@@ -204,7 +206,7 @@
                 link.enter().insert("line", "g")
                         .transition()   
                         .delay(function (d, i) {
-                            return 1000;
+                            return 3000 + i*100;
                         })
                         .attr("id", function (d) {
                             return d.source.name + "-" + d.target
@@ -230,11 +232,18 @@
                 var nodeEnter = node.enter()
                         .append("g")
                         .attr("class", "node")
+                        .attr("opacity", 0)
                         .call(force.drag);
 
                 nodeEnter
+                        .transition()
+                        .duration(3000)
+                        .attr("opacity", 1);
+
+
+                nodeEnter
                         .append("svg:circle")
-                        .attr("r", 12)
+                        .attr("r", 20)
                         .attr("id", function (d) {
                             return "Node;" + d.name;
                         })
@@ -246,26 +255,40 @@
                         .attr("class", "textClass")
                         .attr("x", 14)
                         .attr("y", ".31em")
+                        .attr("opacity", 0)
                         .text(function (d) {
                             return d.name;
-                        });
+                        })
+                        .transition()
+                        .delay(3000)
+                        .attr("opacity", 1);
 
                 node.exit().remove();
 
                 // Restart the force layout.
                 force
-                    .charge(-150)
-                    .linkDistance(50)
                     .size([width, height])
+                    .charge(-500)
+                    .gravity(1)
+                    .linkDistance(300)
                     .start();                
+                    
+                    //
+                    
 
                 force.on("tick", function (e) {
 
                     // Push sources up and targets down to form a weak tree.
-                    var k = 16 * e.alpha;
+                    // var k = 6 * e.alpha;
+                    // subNetLinks.forEach(function(d, i) {
+                    //     d.source.y -= k;
+                    //     d.target.y += k;
+                    // });
+
+                    var kx = .4 * e.alpha, ky = 1.4 * e.alpha;
                     subNetLinks.forEach(function(d, i) {
-                        d.source.y -= k;
-                        d.target.y += k;
+                        d.target.x += (d.source.x - d.target.x) * kx;
+                        d.target.y += (d.source.y + 80 - d.target.y) * ky;
                     });
 
                     node.attr("transform", function (d) {
