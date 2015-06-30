@@ -41,7 +41,7 @@
         };
     }
     
-    d3.json("data/fm.json", function(error, graph) {
+    d3.json("miserables.json", function(error, graph) {
         if (error) throw error;
         
         function chart(elementName) {
@@ -243,7 +243,7 @@
 
                 nodeEnter
                         .append("svg:circle")
-                        .attr("r", 20)
+                        .attr("r", 10)
                         .attr("id", function (d) {
                             return "Node;" + d.name;
                         })
@@ -268,9 +268,9 @@
                 // Restart the force layout.
                 force
                     .size([width, height])
-                    .charge(-500)
-                    .gravity(1)
-                    .linkDistance(300)
+                    .charge(-250)
+                    .gravity(0.6)
+                    .linkDistance(100)
                     .start();                
                     
                     //
