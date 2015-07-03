@@ -41,7 +41,7 @@
         };
     }
     
-    d3.json("miserables.json", function(error, graph) {
+    d3.json("data/miserables.json", function(error, graph) {
         if (error) throw error;
         
         function chart(elementName) {
@@ -139,7 +139,7 @@
                     target;
 
                 // extract subnet around 'd' with all nodes up to 2 hops away
-                subNet(findNodeIndex(d.name, graph.nodes), 1);
+                subNet(findNodeIndex(d.name, graph.nodes), 2);
                 // setting the initial positions of the nodes
                 // subNetNodes.forEach(function(d, i, array){
                 //     var angle = Math.random*Math.PI*2;
@@ -268,9 +268,9 @@
                 // Restart the force layout.
                 force
                     .size([width, height])
-                    .charge(-250)
+                    .charge(-1120)
                     .gravity(0.6)
-                    .linkDistance(100)
+                    .linkDistance(30)
                     .start();                
                     
                     //
@@ -285,11 +285,11 @@
                     //     d.target.y += k;
                     // });
 
-                    var kx = .4 * e.alpha, ky = 1.4 * e.alpha;
-                    subNetLinks.forEach(function(d, i) {
-                        d.target.x += (d.source.x - d.target.x) * kx;
-                        d.target.y += (d.source.y + 80 - d.target.y) * ky;
-                    });
+                    // var kx = .4 * e.alpha, ky = 1.4 * e.alpha;
+                    // subNetLinks.forEach(function(d, i) {
+                    //     d.target.x += (d.source.x - d.target.x) * kx;
+                    //     d.target.y += (d.source.y + 80 - d.target.y) * ky;
+                    // });
 
                     node.attr("transform", function (d) {
                         //console.log('**', d);
