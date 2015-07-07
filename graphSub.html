@@ -23,8 +23,10 @@
             stroke: #23232;
             font-family: "Arial", "Liberation Sans", Arial, Helvetica, sans-serif;
             font-weight: normal;
+
             stroke-width: .1;
             font-size: 18px;
+
         }
     </style>
 </head>
@@ -129,6 +131,7 @@
             };
 
             var clickHandler = function(d, i){
+                console.log(d);
                 // init
                 removeAllNodes(); // clears force.nodes()
                 removeAllLinks(); // clears force.links()
@@ -236,6 +239,9 @@
                         .call(force.drag);
 
                 nodeEnter
+                        .on('click', clickHandler)
+
+                nodeEnter
                         .transition()
                         .duration(3000)
                         .attr("opacity", 1);
@@ -243,17 +249,16 @@
 
                 nodeEnter
                         .append("svg:circle")
-                        .attr("r", 10)
+                        .attr("r", 1)
                         .attr("id", function (d) {
                             return "Node;" + d.name;
                         })
                         .attr("class", "nodeStrokeClass")
-                        .attr("fill", function(d) { return color(d.group); })
-                        .on('click', clickHandler);
+                        .attr("fill", function(d) { return color(d.group); });
 
                 nodeEnter.append("svg:text")
                         .attr("class", "textClass")
-                        .attr("x", 14)
+                        .attr("x", 1)
                         .attr("y", ".31em")
                         .attr("opacity", 0)
                         .text(function (d) {
