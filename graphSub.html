@@ -124,11 +124,11 @@
                 for (var i = 0; i < graph.links.length; i++) {
 
                     if (currentIndex === graph.links[i].source) {
-                        tempLinks.xpush(JSON.stringify(graph.links[i]));
+                        linkStrings.xpush(JSON.stringify(graph.links[i]));
                         subNet(graph.links[i].target, hops - 1)
                     };
                     if (currentIndex === graph.links[i].target) {
-                        tempLinks.xpush(JSON.stringify(graph.links[i]));
+                        linkStrings.xpush(JSON.stringify(graph.links[i]));
                         subNet(graph.links[i].source, hops - 1)
                     };
                 };                
@@ -139,7 +139,7 @@
                 // init
                 removeAllNodes(); // clears force.nodes()
                 removeAllLinks(); // clears force.links()
-                tempLinks = [];
+                linkStrings = []; // var to ensure links no repeated
                 
                 var link,
                     source,
@@ -147,25 +147,17 @@
 
                 // extract subnet around 'd' with all nodes up to 2 hops away
                 subNet(findNodeIndex(d.name, graph.nodes), 2);
-                // setting the initial positions of the nodes
-                // subNetNodes.forEach(function(d, i, array){
-                //     var angle = Math.random*Math.PI*2;
-                //     var x = Math.cos(angle)*20;
-                //     var y = Math.cos(angle)*20;
-                //     d.x = width/2 + x;
-                //     d.y = height/2 + y;
-                // });
+                
                 update();   
                 //add links incrementaly
-                for (var i = 0; i < tempLinks.length; i++) {
-                    link = JSON.parse(tempLinks[i]);
+                for (var i = 0; i < linkStrings.length; i++) {
+                    link = JSON.parse(linkStrings[i]);
 
                     source = graph.nodes[link.source];
                     target = graph.nodes[link.target];
                     addLink(source.name, target.name, 2);
                       
                 };
-
                 
                 update();
                 //console.log(nodes);
@@ -174,15 +166,20 @@
             d3.select(window).on("resize", resize)
 
             var width = 1000, // default width
-                height = 500, // default height
-                color = d3.scale.category10(),
-                force = d3.layout.force(),
-                subNetNodes = force.nodes(),
-                subNetLinks = force.links(),
-                tempLinks = [],
-                vis,
-                runOnceFlag = true,
-                clikedNode;
+                height = 500; // default height
+            
+            var color = d3.scale.category10(),
+                force = d3.layout.force();
+            
+            var subNetNodes = force.nodes(),
+                subNetLinks = force.links();
+            
+            var linkStrings = [],
+                labelAnchors = [],
+                labelAnchorLinks = [];
+            
+            var vis,
+                runOnceFlag = true;
 
             vis = d3.select(elementName)
                     .append("svg:svg")
@@ -286,19 +283,6 @@
                     
 
                 force.on("tick", function (e) {
-
-                    // Push sources up and targets down to form a weak tree.
-                    // var k = 6 * e.alpha;
-                    // subNetLinks.forEach(function(d, i) {
-                    //     d.source.y -= k;
-                    //     d.target.y += k;
-                    // });
-
-                    // var kx = .4 * e.alpha, ky = 1.4 * e.alpha;
-                    // subNetLinks.forEach(function(d, i) {
-                    //     d.target.x += (d.source.x - d.target.x) * kx;
-                    //     d.target.y += (d.source.y + 80 - d.target.y) * ky;
-                    // });
 
                     node.attr("transform", function (d) {
                         //console.log('**', d);
