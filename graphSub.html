@@ -135,8 +135,9 @@
             };
 
             var clickHandler = function(d, i){
-                console.log(d);
-                // init
+                // graph refreshed onces after nodes is added then after links
+                // prevents wild variations in graph render
+                
                 removeAllNodes(); // clears force.nodes()
                 removeAllLinks(); // clears force.links()
                 linkStrings = []; // var to ensure links no repeated
@@ -159,8 +160,8 @@
                       
                 };
                 
+                // refresh the graph
                 update();
-                //console.log(nodes);
             };
 
             d3.select(window).on("resize", resize)
@@ -171,9 +172,11 @@
             var color = d3.scale.category10(),
                 force = d3.layout.force();
             
+            // references to the force datums
             var subNetNodes = force.nodes(),
                 subNetLinks = force.links();
             
+            // force2 nodes and labels
             var linkStrings = [],
                 labelAnchors = [],
                 labelAnchorLinks = [];
