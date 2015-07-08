@@ -134,6 +134,21 @@
                 };                
             };
 
+            var createAnchors = function(){
+                // create nodes and links for the labels
+                // see http://bit.ly/1eDQDS5
+                for (var i = 0; i < subNetNodes.length; i++) {
+                    // one node is anchord to the force1 node
+
+                    labelAnchors.push({
+                        node : subNetNodes[i]
+                    });
+                    labelAnchors.push({
+                        node : subNetNodes[i]
+                    });
+                };
+            };
+
             var clickHandler = function(d, i){
                 // graph refreshed onces after nodes is added then after links
                 // prevents wild variations in graph render
