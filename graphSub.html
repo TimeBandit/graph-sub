@@ -165,6 +165,14 @@
             };
 
             var clickHandler = function(d, i){
+                console.log(d);
+                var nodeName;
+
+                if (d.hasOwnProperty('node')) {
+                    nodeName = d.node.label.name;
+                } else {
+                    nodeName = d.name;
+                };
                 // graph refreshed onces after nodes is added then after links
                 // prevents wild variations in graph render.
                 
@@ -182,7 +190,7 @@
 
                 // first the nodes and anchors
                 // extract subnet around 'd' with all nodes up to 2 hops away
-                subNet(findNodeIndex(d.name, graph.nodes), 2);
+                subNet(findNodeIndex(nodeName, graph.nodes), 1);
                 createAnchors();
                 
                 update();
@@ -302,7 +310,7 @@
                 // enter
                 nodeEnter
                         .append("svg:circle")
-                        .attr("r", 5)
+                        .attr("r", 0)
                         .attr("id", function (d) {
                             return "Node;" + d.name;
                         })
@@ -342,6 +350,9 @@
                                         .enter()
                                         .append("svg:g")
                                         .attr("class", "anchorNode");
+
+                anchorNodeEnter
+                    .on('click', clickHandler)
                 
                 // enter
                 anchorNodeEnter
@@ -365,8 +376,8 @@
                 // Restart the force layout.
                 force
                     .size([width, height])
-                    .charge(-1120)
-                    .gravity(0.6)
+                    .charge(-3000)
+                    .gravity(1)
                     .linkDistance(30)
                     .start();                
 
@@ -439,16 +450,9 @@
             };
 
             if (runOnceFlag) {
-                var a = graph.nodes[0];
-                var b = graph.nodes[1];
-                
-                //console.log(subNetNodes, subNetLinks);
-                subNetNodes.push(a);
-                subNetNodes.push(b);
-                
-                var c = {"source":0,"target":1,"value":1};
-                subNetLinks.push(c);
-                update();
+                // initialise the display
+                subNet(0, 1)
+                clickHandler(subNetNodes[0]);
                 runOnceFlag = false;
             };
         };
