@@ -8,7 +8,6 @@
     <title>Animating Changes in Force Diagram</title>
     <script src="http://d3js.org/d3.v3.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script type="text/javascript" src="http://livejs.com/live.js"></script>
     <style>
         .link {
             stroke: #2E2E2E;
@@ -19,13 +18,14 @@
             stroke: #fff;
             stroke-width: 2px;
         }
+
         .textClass {
             stroke: #23232;
             font-family: "Arial", "Liberation Sans", Arial, Helvetica, sans-serif;
             font-weight: normal;
 
             stroke-width: .1;
-            font-size: 18px;
+            font-size: 1px;
 
         }
     </style>
@@ -90,14 +90,14 @@
             };
 
             // remove all links form the layout
-            var removeAllLinks = function() {
-                subNetLinks.splice(0, subNetLinks.length);
+            var removeAllLinks = function(linkArray) {
+                linkArray.splice(0, linkArray.length);
                 //update();
             };
 
             // remove all node from the layout
-            var removeAllNodes = function() {
-                subNetNodes.splice(0, subNetNodes.length);
+            var removeAllNodes = function(nodeArray) {
+                nodeArray.splice(0, nodeArray.length);
                 //update();
             };
 
@@ -124,41 +124,82 @@
                 for (var i = 0; i < graph.links.length; i++) {
 
                     if (currentIndex === graph.links[i].source) {
-                        tempLinks.xpush(JSON.stringify(graph.links[i]));
+                        linkStrings.xpush(JSON.stringify(graph.links[i]));
                         subNet(graph.links[i].target, hops - 1)
                     };
                     if (currentIndex === graph.links[i].target) {
-                        tempLinks.xpush(JSON.stringify(graph.links[i]));
+                        linkStrings.xpush(JSON.stringify(graph.links[i]));
                         subNet(graph.links[i].source, hops - 1)
                     };
                 };                
             };
 
+            var createAnchors = function(){
+                // create nodes and links for the labels
+                // see http://bit.ly/1eDQDS5
+                for (var i = 0; i < subNetNodes.length; i++) {
+                    // one node is anchor to the force1 node
+                    var n = {
+                        label : subNetNodes[i]
+                    };
+
+                    labelAnchors.push({
+                        node : n
+                    });
+                    labelAnchors.push({
+                        node : n
+                    });
+                };
+            };
+
+            var createAnchorLinks = function(){
+                for (var i = 0; i < subNetNodes.length; i++) {
+                    // join nodes in pairs
+
+                    labelAnchorLinks.push({
+                        source : i * 2,
+                        target : i * 2 + 1,
+                        weight : 1
+                    });
+                };
+            };
+
             var clickHandler = function(d, i){
                 console.log(d);
-                // init
-                removeAllNodes(); // clears force.nodes()
-                removeAllLinks(); // clears force.links()
-                tempLinks = [];
+                var nodeName;
+
+                if (d.hasOwnProperty('node')) {
+                    nodeName = d.node.label.name;
+                } else {
+                    nodeName = d.name;
+                };
+                // graph refreshed onces after nodes is added then after links
+                // prevents wild variations in graph render.
+                
+                linkStrings = []; // var to ensure links no repeated
+                
+                removeAllNodes(subNetNodes); // clears force.nodes()
+                removeAllLinks(subNetLinks); // clears force.links()
+                
+                removeAllNodes(labelAnchors);
+                removeAllLinks(labelAnchorLinks);
                 
                 var link,
                     source,
                     target;
 
+                // first the nodes and anchors
                 // extract subnet around 'd' with all nodes up to 2 hops away
-                subNet(findNodeIndex(d.name, graph.nodes), 2);
-                // setting the initial positions of the nodes
-                // subNetNodes.forEach(function(d, i, array){
-                //     var angle = Math.random*Math.PI*2;
-                //     var x = Math.cos(angle)*20;
-                //     var y = Math.cos(angle)*20;
-                //     d.x = width/2 + x;
-                //     d.y = height/2 + y;
-                // });
-                update();   
-                //add links incrementaly
-                for (var i = 0; i < tempLinks.length; i++) {
-                    link = JSON.parse(tempLinks[i]);
+                subNet(findNodeIndex(nodeName, graph.nodes), 1);
+                createAnchors();
+                
+                update();
+                
+
+                // now the links and anchor links
+                // add links incrementaly
+                for (var i = 0; i < linkStrings.length; i++) {
+                    link = JSON.parse(linkStrings[i]);
 
                     source = graph.nodes[link.source];
                     target = graph.nodes[link.target];
@@ -166,23 +207,32 @@
                       
                 };
 
+                createAnchorLinks();
                 
                 update();
-                //console.log(nodes);
+                console.log('clickHandler done')
             };
 
             d3.select(window).on("resize", resize)
 
             var width = 1000, // default width
-                height = 500, // default height
-                color = d3.scale.category10(),
+                height = 500; // default height
+            
+            var color = d3.scale.category10(),
                 force = d3.layout.force(),
-                subNetNodes = force.nodes(),
-                subNetLinks = force.links(),
-                tempLinks = [],
-                vis,
-                runOnceFlag = true,
-                clikedNode;
+                force2 = d3.layout.force(); // labelAnchors/Links
+            
+            // references to the force datums
+            var subNetNodes = force.nodes(),
+                subNetLinks = force.links();
+            
+            // force2 nodes and labels
+            var linkStrings = [],
+                labelAnchors = force2.nodes(),
+                labelAnchorLinks = force2.links();
+            
+            var vis,
+                runOnceFlag = true;
 
             vis = d3.select(elementName)
                     .append("svg:svg")
@@ -197,19 +247,20 @@
 
             var update = function() {
 
-                console.log('update', force.nodes(), force.links());
+                //console.log(labelAnchorLinks);
 
+                // join
                 var link = vis.selectAll("line")
                         .data(subNetLinks, function (d) {
-                            console.log('update', typeof(d.source), d);
+                            //console.log('update', typeof(d.source), d);
                             if (typeof(d.source) === 'number') {
                                 return subNetNodes[d.source].name + "-" + subNetNodes[d.target].name;
                             }else{
                                 return d.source.name + "-" + d.target.name;
                             };
-                            
                         });
                 
+                // enter
                 link.enter().insert("line", "g")
                         .transition()   
                         .delay(function (d, i) {
@@ -224,42 +275,49 @@
                         })
                         .attr("class", "link");
                 
+                // update
                 link.append("title")
                         .text(function (d) {
                             return d.value;
                         });
                 
+                // exit
                 link.exit().remove();
 
+                // join
                 var node = vis.selectAll("g.node")
                         .data(subNetNodes, function (d) {
                             return d.name;
                         });
 
+                // enter
                 var nodeEnter = node.enter()
                         .append("g")
                         .attr("class", "node")
                         .attr("opacity", 0)
                         .call(force.drag);
 
+                // enter
                 nodeEnter
                         .on('click', clickHandler)
 
+                // enter
                 nodeEnter
                         .transition()
                         .duration(3000)
                         .attr("opacity", 1);
 
-
+                // enter
                 nodeEnter
                         .append("svg:circle")
-                        .attr("r", 1)
+                        .attr("r", 0)
                         .attr("id", function (d) {
                             return "Node;" + d.name;
                         })
                         .attr("class", "nodeStrokeClass")
                         .attr("fill", function(d) { return color(d.group); });
 
+                // enter
                 nodeEnter.append("svg:text")
                         .attr("class", "textClass")
                         .attr("x", 1)
@@ -272,65 +330,129 @@
                         .delay(3000)
                         .attr("opacity", 1);
 
+                // exit
                 node.exit().remove();
+
+                // ###
+                
+                // join
+                var anchorLink = vis.selectAll("line.anchorLink")
+                                    .data(labelAnchorLinks).enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+
+                // join
+                var anchorNode = vis.selectAll("g.anchorNode")
+                                    .data(labelAnchors, function(d, i){
+                                        return d.node.label.name + i;
+                                    });
+
+                // enter
+                var anchorNodeEnter =  anchorNode
+                                        .enter()
+                                        .append("svg:g")
+                                        .attr("class", "anchorNode");
+
+                anchorNodeEnter
+                    .on('click', clickHandler)
+                
+                // enter
+                anchorNodeEnter
+                    .append("svg:circle")
+                    .attr("r", 0)
+                    .style("fill", "#FFF");
+
+                // enter
+                anchorNodeEnter
+                    .append("svg:text")
+                    .text(function(d, i) {
+                        return i % 2 == 0 ? "" : d.node.label.name
+                    })
+                    .style("fill", "#555")
+                    .style("font-family", "Arial")
+                    .style("font-size", 12);
+
+                // exit
+                anchorNode.exit().remove();
 
                 // Restart the force layout.
                 force
                     .size([width, height])
-                    .charge(-1120)
-                    .gravity(0.6)
+                    .charge(-3000)
+                    .gravity(1)
                     .linkDistance(30)
                     .start();                
-                    
-                    //
-                    
 
-                force.on("tick", function (e) {
+                // restart the labels force layout
+                force2
+                    .size([width, height])
+                    .gravity(0)
+                    .linkDistance(0)
+                    .linkStrength(8)
+                    .charge(-100)
+                    .start();
 
-                    // Push sources up and targets down to form a weak tree.
-                    // var k = 6 * e.alpha;
-                    // subNetLinks.forEach(function(d, i) {
-                    //     d.source.y -= k;
-                    //     d.target.y += k;
-                    // });
+                //console.log('selection', anchorNode);
+                //console.log('force datum', force2.nodes());
 
-                    // var kx = .4 * e.alpha, ky = 1.4 * e.alpha;
-                    // subNetLinks.forEach(function(d, i) {
-                    //     d.target.x += (d.source.x - d.target.x) * kx;
-                    //     d.target.y += (d.source.y + 80 - d.target.y) * ky;
-                    // });
-
-                    node.attr("transform", function (d) {
-                        //console.log('**', d);
-                        return "translate(" + d.x + "," + d.y + ")";
-                    }); 
-                    
-                    link.attr("x1", function (d) {
+                var updateLink = function() {
+                    this.attr("x1", function(d) {
                         return d.source.x;
-                    })
-                            .attr("y1", function (d) {
-                                return d.source.y;
-                            })
-                            .attr("x2", function (d) {
-                                return d.target.x;
-                            })
-                            .attr("y2", function (d) {
-                                return d.target.y;
-                            }); 
-                });                
+                    }).attr("y1", function(d) {
+                        return d.source.y;
+                    }).attr("x2", function(d) {
+                        return d.target.x;
+                    }).attr("y2", function(d) {
+                        return d.target.y;
+                    });
+                }
+
+                var updateNode = function() {
+                    this.attr("transform", function(d) {
+                        //console.log('line 398',d.x, d.y);
+                        return "translate(" + d.x + "," + d.y + ")";
+                    });
+                }
+
+                force.on("tick", function() {
+                    force2.start();
+                                  
+                    //---------
+                    node.call(updateNode);
+                    
+                    anchorNode.each(function(d, i) {
+                        
+                        if(i % 2 == 0) {
+                            d.x = d.node.label.x;
+                            d.y = d.node.label.y;
+                        } else {
+                            // get the bounding box
+                            var b = this.childNodes[1].getBBox();
+
+                            var diffX = d.x - d.node.label.x;
+                            var diffY = d.y - d.node.label.y;
+
+                            var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+
+                            var shiftX = b.width * (diffX - dist) / (dist * 2);
+                            shiftX = Math.max(-b.width, Math.min(0, shiftX));
+                            
+                            var shiftY = 5;
+                            
+                            // move the label of the current anchor
+                            this.childNodes[1].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+                        }
+                    });
+                    anchorNode.call(updateNode);
+                    //---------
+                    link.call(updateLink);
+                    anchorLink.call(updateLink);
+                });
+            ///                
             };
 
             if (runOnceFlag) {
-                var a = graph.nodes[0];
-                var b = graph.nodes[1];
-                
-                //console.log(subNetNodes, subNetLinks);
-                subNetNodes.push(a);
-                subNetNodes.push(b);
-                
-                var c = {"source":0,"target":1,"value":1};
-                subNetLinks.push(c);
-                update();
+                // initialise the display
+                subNet(0, 1)
+                clickHandler(subNetNodes[0]);
                 runOnceFlag = false;
             };
         };
