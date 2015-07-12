@@ -25,7 +25,7 @@
             font-weight: normal;
 
             stroke-width: .1;
-            font-size: 18px;
+            font-size: 1px;
 
         }
     </style>
@@ -47,7 +47,7 @@
         };
     }
     
-    d3.json("data/fm.json", function(error, graph) {
+    d3.json("data/miserables.json", function(error, graph) {
         if (error) throw error;
         
         function chart(elementName) {
@@ -334,7 +334,7 @@
                 // join
                 var anchorNode = vis.selectAll("g.anchorNode")
                                     .data(labelAnchors, function(d, i){
-                                        return d.node.name + i;
+                                        return d.node.label.name + i;
                                     });
 
                 // enter
@@ -346,20 +346,21 @@
                 // enter
                 anchorNodeEnter
                     .append("svg:circle")
-                    .attr("r", 10)
+                    .attr("r", 0)
                     .style("fill", "#FFF");
 
                 // enter
                 anchorNodeEnter
                     .append("svg:text")
                     .text(function(d, i) {
-                        return i % 2 == 0 ? "" : d.node.name
+                        return i % 2 == 0 ? "" : d.node.label.name
                     })
                     .style("fill", "#555")
                     .style("font-family", "Arial")
                     .style("font-size", 12);
 
-
+                // exit
+                anchorNode.exit().remove();
 
                 // Restart the force layout.
                 force
@@ -373,7 +374,7 @@
                 force2
                     .size([width, height])
                     .gravity(0)
-                    .linkDistance(20)
+                    .linkDistance(0)
                     .linkStrength(8)
                     .charge(-100)
                     .start();
@@ -395,41 +396,37 @@
 
                 var updateNode = function() {
                     this.attr("transform", function(d) {
+                        //console.log('line 398',d.x, d.y);
                         return "translate(" + d.x + "," + d.y + ")";
                     });
                 }
 
-                // console.log('------------------');
-                // console.log(node);
-                // console.log(anchorNode);
-                // console.log('------------------');
-                
                 force.on("tick", function() {
                     force2.start();
                                   
                     //---------
                     node.call(updateNode);
-
+                    
                     anchorNode.each(function(d, i) {
-                        //console.log(d);
+                        
                         if(i % 2 == 0) {
-                            d.x = d.node.x;
-                            d.y = d.node.y;
+                            d.x = d.node.label.x;
+                            d.y = d.node.label.y;
                         } else {
+                            // get the bounding box
                             var b = this.childNodes[1].getBBox();
 
-                            var diffX = d.x - d.node.x;
-                            var diffY = d.y - d.node.y;
+                            var diffX = d.x - d.node.label.x;
+                            var diffY = d.y - d.node.label.y;
 
                             var dist = Math.sqrt(diffX * diffX + diffY * diffY);
 
                             var shiftX = b.width * (diffX - dist) / (dist * 2);
-                            if (!shiftX) {
-                                console.log(d);
-                                force.stop();
-                            };
                             shiftX = Math.max(-b.width, Math.min(0, shiftX));
+                            
                             var shiftY = 5;
+                            
+                            // move the label of the current anchor
                             this.childNodes[1].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
                         }
                     });
