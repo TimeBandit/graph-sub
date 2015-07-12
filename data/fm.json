@@ -1,19 +1,19 @@
 {
     "nodes":[
-      {"name":"a", "group":1},
-      {"name":"b", "group":2},
-      {"name":"c", "group":3},
-      {"name":"d", "group":4},
-      {"name":"e", "group":5},
-      {"name":"f", "group":6},
-      {"name":"g", "group":7},
-      {"name":"h", "group":1},
-      {"name":"i", "group":2},
-      {"name":"j", "group":3},
-      {"name":"k", "group":4},
-      {"name":"l", "group":5},
-      {"name":"m", "group":6},
-      {"name":"n", "group":7}
+      {"name":"a-asdasdasd", "group":1},
+      {"name":"b-dfgdfgdfg", "group":2},
+      {"name":"c-hjfghjfgj", "group":3},
+      {"name":"d-sthdfhdfg", "group":4},
+      {"name":"e-vbncvbvcb", "group":5},
+      {"name":"f-qwerqwere", "group":6},
+      {"name":"g-xfgxfgdff", "group":7},
+      {"name":"h-sdfghdfhd", "group":1},
+      {"name":"i-arsargfas", "group":2},
+      {"name":"j-hdgfhdgfh", "group":3},
+      {"name":"k-asefasdfd", "group":4},
+      {"name":"l-sthsdhgsd", "group":5},
+      {"name":"m-awsefraea", "group":6},
+      {"name":"n-rtyhrthyt", "group":7}
   ],
     "links":[
       {"source":0,"target":1,"value":1},
