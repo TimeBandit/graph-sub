@@ -139,15 +139,15 @@
                 // see http://bit.ly/1eDQDS5
                 for (var i = 0; i < subNetNodes.length; i++) {
                     // one node is anchor to the force1 node
-                    var node = {
-                        name : subNetNodes[i].name
+                    var n = {
+                        label : subNetNodes[i]
                     };
 
                     labelAnchors.push({
-                        node : node
+                        node : n
                     });
                     labelAnchors.push({
-                        node : node
+                        node : n
                     });
                 };
             };
@@ -241,6 +241,7 @@
 
                 //console.log(labelAnchorLinks);
 
+                // join
                 var link = vis.selectAll("line")
                         .data(subNetLinks, function (d) {
                             //console.log('update', typeof(d.source), d);
@@ -251,6 +252,7 @@
                             };
                         });
                 
+                // enter
                 link.enter().insert("line", "g")
                         .transition()   
                         .delay(function (d, i) {
@@ -265,33 +267,39 @@
                         })
                         .attr("class", "link");
                 
+                // update
                 link.append("title")
                         .text(function (d) {
                             return d.value;
                         });
                 
+                // exit
                 link.exit().remove();
 
+                // join
                 var node = vis.selectAll("g.node")
                         .data(subNetNodes, function (d) {
                             return d.name;
                         });
 
+                // enter
                 var nodeEnter = node.enter()
                         .append("g")
                         .attr("class", "node")
                         .attr("opacity", 0)
                         .call(force.drag);
 
+                // enter
                 nodeEnter
                         .on('click', clickHandler)
 
+                // enter
                 nodeEnter
                         .transition()
                         .duration(3000)
                         .attr("opacity", 1);
 
-
+                // enter
                 nodeEnter
                         .append("svg:circle")
                         .attr("r", 5)
@@ -301,6 +309,7 @@
                         .attr("class", "nodeStrokeClass")
                         .attr("fill", function(d) { return color(d.group); });
 
+                // enter
                 nodeEnter.append("svg:text")
                         .attr("class", "textClass")
                         .attr("x", 1)
@@ -313,23 +322,35 @@
                         .delay(3000)
                         .attr("opacity", 1);
 
+                // exit
                 node.exit().remove();
-                //=============================
-                var anchorLink = vis.selectAll("line.anchorLink")
-                                    .data(labelAnchorLinks)//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
 
+                // ###
+                
+                // join
+                var anchorLink = vis.selectAll("line.anchorLink")
+                                    .data(labelAnchorLinks).enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+
+                // join
                 var anchorNode = vis.selectAll("g.anchorNode")
-                                    .data(labelAnchors)
-                                    .enter()
-                                    .append("svg:g")
-                                    .attr("class", "anchorNode");
-                            
-                anchorNode
+                                    .data(labelAnchors, function(d, i){
+                                        return d.node.name + i;
+                                    });
+
+                // enter
+                var anchorNodeEnter =  anchorNode
+                                        .enter()
+                                        .append("svg:g")
+                                        .attr("class", "anchorNode");
+                
+                // enter
+                anchorNodeEnter
                     .append("svg:circle")
                     .attr("r", 10)
                     .style("fill", "#FFF");
 
-                anchorNode
+                // enter
+                anchorNodeEnter
                     .append("svg:text")
                     .text(function(d, i) {
                         return i % 2 == 0 ? "" : d.node.name
@@ -352,13 +373,13 @@
                 force2
                     .size([width, height])
                     .gravity(0)
-                    .linkDistance(6)
+                    .linkDistance(20)
                     .linkStrength(8)
                     .charge(-100)
                     .start();
 
-                console.log('selection', anchorNode);
-                console.log('force datum', force2.nodes());
+                //console.log('selection', anchorNode);
+                //console.log('force datum', force2.nodes());
 
                 var updateLink = function() {
                     this.attr("x1", function(d) {
@@ -378,20 +399,19 @@
                     });
                 }
 
-                console.log('------------------');
-                console.log(node);
-                console.log(anchorNode);
-                console.log('------------------');
+                // console.log('------------------');
+                // console.log(node);
+                // console.log(anchorNode);
+                // console.log('------------------');
                 
                 force.on("tick", function() {
-                    //force2.start();
-
+                    force2.start();
                                   
                     //---------
                     node.call(updateNode);
 
                     anchorNode.each(function(d, i) {
-                        console.log(d);
+                        //console.log(d);
                         if(i % 2 == 0) {
                             d.x = d.node.x;
                             d.y = d.node.y;
@@ -404,6 +424,10 @@
                             var dist = Math.sqrt(diffX * diffX + diffY * diffY);
 
                             var shiftX = b.width * (diffX - dist) / (dist * 2);
+                            if (!shiftX) {
+                                console.log(d);
+                                force.stop();
+                            };
                             shiftX = Math.max(-b.width, Math.min(0, shiftX));
                             var shiftY = 5;
                             this.childNodes[1].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
