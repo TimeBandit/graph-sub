@@ -28,6 +28,14 @@
             font-size: 1px;
 
         }
+
+        #licensing {
+            fill: green;
+        }
+
+        .link.licensing {
+            stroke: green;
+        }
     </style>
 </head>
 <body>
@@ -167,7 +175,7 @@
             };
 
             var clickHandler = function(d, i){
-                console.log(d);
+                //console.log(d);
                 var nodeName;
 
                 if (d.hasOwnProperty('node')) {
@@ -266,11 +274,11 @@
             var update = function() {
 
                 var path = vis.selectAll("path")
-                            .data(force.links())
+                            .data(subNetLinks);
                 
                 path.enter().append("path")
-                    .attr("class", function(d) { return "link " + d.type; })
-                    .attr("marker-end", function(d) { return "url(#" + d.type + ")"; });
+                    .attr("class", 'link licensing')
+                    .attr("marker-end", 'url(#licensing)');
 
                 // join
                 var link = vis.selectAll("line")
