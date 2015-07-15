@@ -13,8 +13,8 @@ force directed graph examples given in d3js.
 
 Examples Used:
 
-[Force-based label placement](http://bl.ocks.org/cpbotha/5073718)
+[Simple example of reusable d3 plugin](http://bl.ocks.org/cpbotha/5073718)
 
-[Force-Directed Graph](http://bl.ocks.org/MoritzStefaner/1377729)
+[Force-based label placement](http://bl.ocks.org/MoritzStefaner/1377729)
 
 [Force-Directed Graph](http://bl.ocks.org/mbostock/4062045)
