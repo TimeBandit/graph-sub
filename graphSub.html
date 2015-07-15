@@ -28,12 +28,22 @@
             font-size: 1px;
 
         }
+
+        #licensing {
+            fill: green;
+        }
+
+        .link.licensing {
+            stroke: green;
+        }
     </style>
 </head>
 <body>
 <script>
     /*  Features
         clicable text labels
+        no overlap of labels- http://bl.ocks.org/MoritzStefaner/1377729
+        arrows - http://bl.ocks.org/mbostock/1153292
     */
 
     // add a method conditionaly
@@ -47,7 +57,7 @@
         };
     }
     
-    d3.json("data/miserables.json", function(error, graph) {
+    d3.json("data/fm.json", function(error, graph) {
         if (error) throw error;
         
         function chart(elementName) {
@@ -65,7 +75,7 @@
             };
 
             var resize = function() {
-                var svg = d3.select(elementName).append("svg");
+                //var svg = d3.select(elementName).append("svg");
                 width = window.innerWidth, height = window.innerHeight;
                 vis.attr("width", width).attr("height", height);
                 force.size([width, height]).resume();
@@ -165,7 +175,7 @@
             };
 
             var clickHandler = function(d, i){
-                console.log(d);
+                //console.log(d);
                 var nodeName;
 
                 if (d.hasOwnProperty('node')) {
@@ -190,7 +200,7 @@
 
                 // first the nodes and anchors
                 // extract subnet around 'd' with all nodes up to 2 hops away
-                subNet(findNodeIndex(nodeName, graph.nodes), 1);
+                subNet(findNodeIndex(nodeName, graph.nodes), 2);
                 createAnchors();
                 
                 update();
@@ -243,11 +253,25 @@
                     .attr("viewBox", "0 0 " + 1000 + " " + 500)
                     .attr("perserveAspectRatio", "xMinYMid")
                     .append('svg:g');
+
+            // Per-type markers, as they don't inherit styles.
+            vis.insert("defs")
+                .selectAll("marker")
+                .data(["suit", "licensing", "resolved"])
+                .enter()
+                    .append("marker")
+                        .attr("id", function(d) { return d; })
+                        .attr("viewBox", "0 -5 10 10")
+                        .attr("refX", 15)
+                        .attr("refY", -0.5)
+                        .attr("markerWidth", 6)
+                        .attr("markerHeight", 6)
+                        .attr("orient", "auto")
+                        .append("path")
+                            .attr("d", "M0,-5L10,0L0,5");
                     
 
             var update = function() {
-
-                //console.log(labelAnchorLinks);
 
                 // join
                 var link = vis.selectAll("line")
@@ -273,7 +297,8 @@
                         .attr("stroke-width", function (d) {
                             return d.value / 10;
                         })
-                        .attr("class", "link");
+                        .attr("class", "link")
+                        .attr("marker-end", "url(#suit)");
                 
                 // update
                 link.append("title")
@@ -337,7 +362,7 @@
                 
                 // join
                 var anchorLink = vis.selectAll("line.anchorLink")
-                                    .data(labelAnchorLinks).enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+                                    .data(labelAnchorLinks);//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
 
                 // join
                 var anchorNode = vis.selectAll("g.anchorNode")
@@ -378,7 +403,7 @@
                     .size([width, height])
                     .charge(-3000)
                     .gravity(1)
-                    .linkDistance(30)
+                    .linkDistance(50)
                     .start();                
 
                 // restart the labels force layout
