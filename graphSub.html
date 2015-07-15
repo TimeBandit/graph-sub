@@ -57,7 +57,7 @@
         };
     }
     
-    d3.json("data/miserables.json", function(error, graph) {
+    d3.json("data/fm.json", function(error, graph) {
         if (error) throw error;
         
         function chart(elementName) {
@@ -286,10 +286,6 @@
                 
                 // enter
                 link.enter().insert("line", "g")
-                        .transition()   
-                        .delay(function (d, i) {
-                            return 3000 + i*100;
-                        })
                         .attr("id", function (d) {
                             return d.source.name + "-" + d.target
                             .name;
@@ -297,8 +293,13 @@
                         .attr("stroke-width", function (d) {
                             return d.value / 10;
                         })
+                        .attr("opacity", 0)
                         .attr("class", "link")
                         .attr("marker-end", "url(#suit)");
+
+                link.transition()   
+                        .duration(3000)
+                        .attr("opacity", 1);
                 
                 // update
                 link.append("title")
