@@ -10,15 +10,16 @@
 
 graphSub is a re-usable D3 force directed graph for displaying
 subsets of a much larger graph. This has the benefits of presenting
-a graph which is easier to understand and navigable.
+a graph which is easier to understand and navigable whilst still 
+giving access to the entire dataset.
 
 Featues include:
 * None over lapping labels.
 * You can configure how wide the subset is.
 * Clickable nodes which redraw the graph centered on the clicked node.
-* Smooth transitions. 
+* Smooth transitions which fade in/out only the new nodes and links. 
 
-Examples Used:
+Example bl.ock.s used in the development of this graph:
 
 [Simple example of reusable d3 plugin](http://bl.ocks.org/cpbotha/5073718)
 
