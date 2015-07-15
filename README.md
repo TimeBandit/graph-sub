@@ -18,3 +18,9 @@ Examples Used:
 [Force-based label placement](http://bl.ocks.org/MoritzStefaner/1377729)
 
 [Force-Directed Graph](http://bl.ocks.org/mbostock/4062045)
+
+[General Update Pattern, I](http://bl.ocks.org/mbostock/3808218)
+
+[General Update Pattern, II](http://bl.ocks.org/mbostock/3808221)
+
+[General Update Pattern, III](http://bl.ocks.org/mbostock/3808234)
