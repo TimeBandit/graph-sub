@@ -5,11 +5,18 @@
 | (_| | | | (_| | |_) | | | |___) | |_| | |_) |
  \__, |_|  \__,_| .__/|_| |_|____/ \__,_|_.__/ 
  |___/          |_|                            
+
 </pre>
 
-graphSub is a Javasctipt module for extracting 
-a subset of a larger graph defined as per the
-force directed graph examples given in d3js.
+graphSub is a re-usable D3 force directed graph for displaying
+subsets of a much larger graph. This has the benefits of presenting
+a graph which is easier to understand and navigable.
+
+Featues include:
+* None over lapping labels.
+* You can configure how wide the subset is.
+* Clickable nodes which redraw the graph centered on the clicked node.
+* Smooth transitions. 
 
 Examples Used:
 
