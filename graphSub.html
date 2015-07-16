@@ -94,8 +94,8 @@
 
             // look for the node in the d3 layout
             var findNode = function(name) {
-                for (var i in subNetNodes) {
-                    if (subNetNodes[i]["name"] === name) return subNetNodes[i];
+                for (var i in graph.nodes) {
+                    if (graph.nodes[i]["name"] === name) return graph.nodes[i];
                 };
             };
 
@@ -328,7 +328,7 @@
                 node.exit().remove();
 
                 // ###
-                
+                //console.log(labelAnchorLinks);
                 // join
                 var anchorLink = vis.selectAll("line.anchorLink")
                                     .data(labelAnchorLinks);//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
