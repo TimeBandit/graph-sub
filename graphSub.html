@@ -276,14 +276,11 @@
                 // join
                 var link = vis.selectAll("line")
                         .data(subNetLinks, function (d) {
-                            //console.log('update', typeof(d.source), d);
-                            if (typeof(d.source) === 'number') {
-                                return subNetNodes[d.source].name + "-" + subNetNodes[d.target].name;
-                            }else{
-                                return d.source.name + "-" + d.target.name;
-                            };
+                            return d.source.name + "-" + d.target.name;
                         });
                 
+                
+
                 // enter
                 link.enter().insert("line", "g")
                         .attr("id", function (d) {
@@ -293,13 +290,8 @@
                         .attr("stroke-width", function (d) {
                             return d.value / 10;
                         })
-                        .attr("opacity", 0)
                         .attr("class", "link")
                         .attr("marker-end", "url(#suit)");
-
-                link.transition()   
-                        .duration(3000)
-                        .attr("opacity", 1);
                 
                 // update
                 link.append("title")
@@ -319,18 +311,13 @@
                 // enter
                 var nodeEnter = node.enter()
                         .append("g")
-                        .attr("class", "node")
-                        .attr("opacity", 0)
-                        .call(force.drag);
+                        .attr("class", "node");
 
-                // enter
-                nodeEnter
-                        .on('click', clickHandler)
 
                 // enter
                 nodeEnter
                         .append("svg:circle")
-                        .attr("r", 0)
+                        .attr("r", 5)
                         .attr("id", function (d) {
                             return "Node;" + d.name;
                         })
