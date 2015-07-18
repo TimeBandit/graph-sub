@@ -7,8 +7,9 @@
     <title>graphSub</title>
     <title>Animating Changes in Force Diagram</title>
     <script src="http://d3js.org/d3.v3.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     <style>
         .link {
             stroke: #2E2E2E;
@@ -42,15 +43,10 @@
 <body>
 <div class="ui-widget">
   <label for="search">Search: </label>
-  <input id="search-term">
+  <input id="search">
 </div>
 <script>
-    /*  Features
-        clicable text labels
-        no overlap of labels- http://bl.ocks.org/MoritzStefaner/1377729
-        arrows - http://bl.ocks.org/mbostock/1153292
-    */
-
+    
     // add a method conditionaly
     if (!('xpush' in Array.prototype)) {
         // push value to array only if not already present
@@ -61,10 +57,12 @@
             return this
         };
     }
-    
-    d3.json("data/miserables.json", function(error, graph) {
+
+    d3.json("data/fm.json", function(error, graph) {
         if (error) throw error;
-        
+
+
+     
         function chart(elementName) {
 
             var width = function(value) {
@@ -453,6 +451,33 @@
                 subNet(0, 1)
                 clickHandler(subNetNodes[0]);
                 runOnceFlag = false;
+
+                // placeholder for search box data
+                var nodeNames = [];
+                $("#search").val('');
+
+                for (var i = 0; i < graph.nodes.length; i++) {
+                    nodeNames.push({'label': graph.nodes[i].name, 'value': i+''});
+                };
+
+                console.log(nodeNames);
+
+                // bind search values do the search box
+                $("#search").autocomplete({
+                    source: nodeNames,
+                    
+                    select: function(event, ui) {
+                        event.preventDefault();
+                        console.log(+ui.item.value);
+                        clickHandler(graph.nodes[+ui.item.value], +ui.item.value);
+                        $("#search").val(ui.item.label);
+                    },
+                    
+                    focus: function(event, ui) {
+                        event.preventDefault();
+                        $("#search").val(ui.item.label);
+                    }
+                });
             };
         };
         ///
