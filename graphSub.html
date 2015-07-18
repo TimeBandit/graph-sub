@@ -58,7 +58,7 @@
         };
     }
 
-    d3.json("data/fm.json", function(error, graph) {
+    d3.json("data/miserables.json", function(error, graph) {
         if (error) throw error;
 
 
@@ -186,6 +186,9 @@
                 } else {
                     nodeName = d.name;
                 };
+
+                $("#search").val(nodeName);
+
                 // graph refreshed onces after nodes is added then after links
                 // prevents wild variations in graph render.
                 
