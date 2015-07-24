@@ -61,7 +61,15 @@
     d3.json("data/miserables.json", function(error, graph) {
         if (error) throw error;
 
-
+        if (!('xpush' in Array.prototype)) {
+            // push value to array only if not already present
+            Array.prototype.xpush = function(value){
+                if(this.indexOf(value) === -1){
+                    this.push(value);
+                };
+                return this
+            };
+        }
      
         function chart(elementName) {
 
