@@ -9,107 +9,469 @@
                 (n)
 */
 
-// create a list of the nodes in the subnet
-var makeSubNodesArr = function(visited, propname, nodes){
-  console.log(visited);
-  var result = [],
-      searchPair = {},
-      obj;
-  for (var i = 0; i < visited.length; i++) {
-    searchPair[propname] = visited[i];
-    obj = _.findWhere(nodes, searchPair)
-    // remove properties added by d3, preserve use defined properties
-    obj = _.omit(obj, ['index'])
-    result.push(obj);
-    //console.log('makeSubNodesArr ', result);
-  };
-  console.log(nodes);
-  
-  return result;
+// add a method conditionaly
+if (!('xpush' in Array.prototype)) {
+    // push value to array only if not already present
+    Array.prototype.xpush = function(value){
+        if(this.indexOf(value) === -1){
+            this.push(value);
+        };
+        return this
+    };
 };
 
-// create the array of links between nodes in the subNodesArr
-var makeSubLinksArr = function(subNodes, propname, subLinks){
-  var result = [],
-      nodeIndex = {},
-      sourceIndex,
-      sourceObject = {},      
-      targetIndex,
-      targetObject = {},
-      obj;
-
-  // {'a': 0, 'b': 1, 'c': '2' etc}
-  // the position of each propname in the arr
-  for (var i = 0; i < subNodes.length; i++) {
-    nodeIndex[subNodes[i][propname]] = i;
-  };
-  console.log(JSON.stringify(nodeIndex));
-
-  // create a new subLinksArr based on the subNodeArr
-  for (var i = 0; i < subLinks.length; i++) {
-    obj = subLinks[i];
-    console.log(JSON.stringify(obj));
-    // look up propname and get its array indice
-    sourceIndex = nodeIndex[obj.source[propname]];
-    sourceObject.index = sourceIndex;
-    sourceObject.propname = subNodes[sourceIndex][propname];
-
-    targetIndex = nodeIndex[obj.target[propname]];
-    targetObject.index = targetIndex;
-    targetObject.propname = subNodes[targetIndex][propname];
-
-    obj.source = sourceObject;
-    obj.target = targetObject;
-
-    result.push(obj);
-  };
-  //console.log('makeSubLinksArr ', result);
-  return result
-};
-
-// return a sub-network of n layers around a source node
-var graphSub = function(datum, propname, distanceToFetch, links, nodes){
+d3.grapSub = function() {
   
-  // create deep copies of data
-  var nodes = JSON.parse(JSON.stringify(nodes));
-  var links = JSON.parse(JSON.stringify(links));
+  var config = {
+    width: 1000,
+    height: 500,
+    hops: 2
+  };
 
-  // initialise variable.
-  var count = 0,
-      toVisit = [],
-      visited = [],
-      subLinks = [],
-      current,
-      result = {};
+  function chart(selection) {
+    selection.each(function (d, i) {
+      
+      var current_selection = this;
 
-  toVisit.push(datum[propname]); // initialize
-  visited.push(datum[propname]); // initialize
+      var model = {};
 
-  while((count < distanceToFetch) || (toVisit.length === 0)){
-    current = toVisit.pop(toVisit);
+      var controller = {
+        
+        init: function() {
+          model.graph = d;
+          model.color = d3.scale.category10();
+          model.force = d3.layout.force();
+          model.force2 = d3.layout.force();
+          model.subNetNodes = model.force.nodes();
+          model.subNetLinks = model.force.links();      
+          model.linkStrings = [];
+          model.labelAnchors = model.force2.nodes();
+          model.labelAnchorLinks = model.force2.links();
+          
+          // setup search-box data
+          model.nodeNames = [];
+          for (var i = 0; i < model.graph.nodes.length; i++) {
+            model.nodeNames.push({'label': model.graph.nodes[i].name, 'value': i+''});
+          };
+          
+          view.init();
 
-    for (var i = 0; i < links.length; i++) {
-      // collect links that 'current' point to
-      if(links[i].source[propname] === current){
-        // dont store if present, uses underscore.js union
-        subLinks = _.union([links[i]], subLinks); 
-        toVisit = _.union([links[i].target[propname]], toVisit);
-        visited = _.union([links[i].target[propname]], visited);
+          controller.getSubnet(0, 1)
+          this.click(model.subNetNodes[0]);
+        },
+
+        // add link to the layout
+        addLink: function(source, target, value){
+            var link = {"source": this.findNode(source), "target": this.findNode(target), "value": value};
+            model.subNetLinks.push(link);
+        },
+
+        // look for the node in the d3 layout
+        findNode: function(name) {
+          for (var i in model.graph.nodes) {
+            if (model.graph.nodes[i]["name"] === name) return model.graph.nodes[i];
+          };
+        },
+
+        // remove all links from the layout
+        removeAllLinks: function(linkArray) {
+          linkArray.splice(0, linkArray.length);
+        },
+
+        // remove all node from the layout
+        removeAllNodes: function(nodeArray) {
+          nodeArray.splice(0, nodeArray.length);
+        },
+
+        findNodeIndex: function(name, nodes) {
+          for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].name == name) {
+              return i;
+            }
+          };
+        },
+
+        createAnchors: function(){
+          for (var i = 0; i < model.subNetNodes.length; i++) {
+              // one node is anchor to the force1 node
+              var n = {
+                  label : model.subNetNodes[i]
+              };
+
+              model.labelAnchors.push({
+                  node : n
+              });
+              model.labelAnchors.push({
+                  node : n
+              });
+            };
+          },
+
+        createAnchorLinks: function(){
+          for (var i = 0; i < model.subNetNodes.length; i++) {
+            // join nodes in pairs
+            model.labelAnchorLinks.push({
+              source : i * 2,
+              target : i * 2 + 1,
+              weight : 1
+            });
+          };
+        },
+
+        getSubnet: function(currentIndex, hops){
+        // links stored as JSON objects, easy to compare
+        // operates on the data loaded from the JSON
+          var n = model.graph.nodes[currentIndex];
+          
+          model.subNetNodes.xpush(n);
+
+          if (hops === 0) {
+              return;
+          };
+
+          for (var i = 0; i < model.graph.links.length; i++) {
+
+              if (currentIndex === model.graph.links[i].source) {
+                  model.linkStrings.xpush(JSON.stringify(model.graph.links[i]));
+                  this.getSubnet(model.graph.links[i].target, hops - 1)
+              };
+              if (currentIndex === model.graph.links[i].target) {
+                  model.linkStrings.xpush(JSON.stringify(model.graph.links[i]));
+                  this.getSubnet(model.graph.links[i].source, hops - 1)
+              };
+          };                
+        },
+
+        click: function(d){
+          //console.log(d);
+          var nodeName;
+
+          if (d.hasOwnProperty('node')) {
+              // the callback route
+              nodeName = d.node.label.name;
+          } else {
+              nodeName = d.name;
+          };
+
+          $("#search").val(nodeName);
+
+          // graph refreshed onces after nodes is added then after links
+          // prevents wild variations in graph render.
+          model.linkStrings = []; // var to ensure links no repeated
+          console.log(this, d);
+          this.removeAllNodes(model.subNetNodes); // clears force.nodes()
+          this.removeAllLinks(model.subNetLinks); // clears force.links()
+          
+          this.removeAllNodes(model.labelAnchors);
+          this.removeAllLinks(model.labelAnchorLinks);
+          
+          var link,
+              source,
+              target;
+
+          // first the nodes and anchors
+          // extract subnet around 'd' with all nodes up to 2 hops away
+          this.getSubnet(this.findNodeIndex(nodeName, model.graph.nodes), 2);
+          this.createAnchors();
+          
+          view.render();
+          
+
+          // now the links and anchor links
+          // add links incrementaly
+          for (var i = 0; i < model.linkStrings.length; i++) {
+              link = JSON.parse(model.linkStrings[i]);
+
+              source = model.graph.nodes[link.source];
+              target = model.graph.nodes[link.target];
+              this.addLink(source.name, target.name, 2);
+                
+          };
+
+          this.createAnchorLinks();
+          
+          view.render();
+        }
+        
       };
-      // collect the links that point to 'current'
-      if(links[i].target[propname] === current){
-        // dont store if present, uses underscore.js union
-        subLinks = _.union([links[i]], subLinks); 
-        toVisit = _.union([links[i].source[propname]], toVisit);
-        visited = _.union([links[i].source[propname]], visited);
-      };
+
+      var view = {
+        
+        init: function () {
+          d3.select(window).on("resize", this.resize)
+          
+          model.vis = d3.select(current_selection)
+                      .append("svg:svg")
+                      .attr("width", config.width)
+                      .attr("height", config.height)
+                      .attr("id", "svg")
+                      .attr("pointer-events", "all")
+                      .attr("viewBox", "0 0 " + 1000 + " " + 500)
+                      .attr("perserveAspectRatio", "xMinYMid")
+                      .append('svg:g');
+
+          //Per-type markers, as they don't inherit styles.
+          model.vis.insert("defs")
+              .selectAll("marker")
+              .data(["suit", "licensing", "resolved"])
+              .enter()
+                  .append("marker")
+                      .attr("id", function(d) { return d; })
+                      .attr("viewBox", "0 -5 10 10")
+                      .attr("refX", 15)
+                      .attr("refY", -0.5)
+                      .attr("markerWidth", 6)
+                      .attr("markerHeight", 6)
+                      .attr("orient", "auto")
+                      .append("path")
+                          .attr("d", "M0,-5L10,0L0,5");
+
+          // clear search box
+          $("#search").val('');
+
+          // bind search values do the search box
+          $("#search").autocomplete({
+              source: model.nodeNames,
+              
+              select: function(event, ui) {
+                  event.preventDefault();
+                  //console.log(+ui.item.value);
+                  controller.click(model.graph.nodes[+ui.item.value], +ui.item.value);
+                  $("#search").val(ui.item.label);
+              },
+              
+              focus: function(event, ui) {
+                  event.preventDefault();
+                  $("#search").val(ui.item.label);
+              }
+          });
+        },
+
+        resize: function() {
+          config.width = window.innerWidth; 
+          config.height = window.innerHeight;
+          
+          vis.attr("width", config.width).attr("height", config.height);
+
+          force.size([config.width, config.height]).resume();
+        },
+
+        render: function() {
+
+          // join
+          var link = model.vis.selectAll("line")
+                  .data(model.subNetLinks, function (d) {
+                      return d.source.name + "-" + d.target.name;
+                  });          
+
+          // enter
+          link.enter().insert("line", "g")
+                  .attr("id", function (d) {
+                      return d.source.name + "-" + d.target
+                      .name;
+                  })
+                  .attr("stroke-width", function (d) {
+                      return d.value / 10;
+                  })
+                  .attr("class", "link")
+                  .attr("marker-end", "url(#suit)");
+          
+          // update
+          link.append("title")
+                  .text(function (d) {
+                      return d.value;
+                  });
+          
+          // exit
+          link.exit().remove();
+
+          // join
+          var node = model.vis.selectAll("g.node")
+                  .data(model.subNetNodes, function (d) {
+                      return d.name;
+                  });
+
+          // enter
+          var nodeEnter = node.enter()
+                  .append("g")
+                  .attr("class", "node");
+
+
+          // enter
+          nodeEnter
+                  .append("svg:circle")
+                  .attr("r", 5)
+                  .attr("id", function (d) {
+                      return "Node;" + d.name;
+                  })
+                  .attr("class", "nodeStrokeClass")
+                  .attr("fill", function(d) { return model.color(d.group); });
+
+          // exit
+          node.exit().remove();
+
+          // Force2 labels
+          
+          // join
+          var anchorLink = model.vis.selectAll("line.anchorLink")
+                              .data(model.labelAnchorLinks);//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+
+          // join
+          var anchorNode = model.vis.selectAll("g.anchorNode")
+                              .data(model.labelAnchors, function(d, i){
+                                  return d.node.label.name + i;
+                              });
+
+          // enter
+          var anchorNodeEnter =  anchorNode
+                                  .enter()
+                                  .append("svg:g")
+                                  .attr("class", "anchorNode");
+
+          anchorNodeEnter
+              .on('click', function(d){controller.click(d);}, false)
+          
+          // enter
+          anchorNodeEnter
+              .append("svg:circle")
+              .attr("r", 0)
+              .style("fill", "#FFF");
+
+          // enter
+          anchorNodeEnter
+              .append("svg:text")
+              .text(function(d, i) {
+                  return i % 2 == 0 ? "" : d.node.label.name
+              })
+              .style("fill", "#555")
+              .style("font-family", "Arial")
+              .style("font-size", 12);
+
+          // exit
+          anchorNode.exit().remove();
+
+          // Restart the force layout.
+          model.force
+              .size([config.width, config.height])
+              .charge(-3000)
+              .gravity(1)
+              .linkDistance(50)
+              .start();                
+
+          // restart the labels force layout
+          model.force2
+              .size([config.width, config.height])
+              .gravity(0)
+              .linkDistance(0)
+              .linkStrength(8)
+              .charge(-100)
+              .start();
+
+          //console.log('selection', anchorNode);
+          //console.log('force datum', force2.nodes());
+
+          var updateLink = function() {
+              this.attr("x1", function(d) {
+                  return d.source.x;
+              }).attr("y1", function(d) {
+                  return d.source.y;
+              }).attr("x2", function(d) {
+                  return d.target.x;
+              }).attr("y2", function(d) {
+                  return d.target.y;
+              });
+          }
+
+          var updateNode = function() {
+              this.attr("transform", function(d) {
+                  //console.log('line 398',d.x, d.y);
+                  return "translate(" + d.x + "," + d.y + ")";
+              });
+          }
+
+          model.force.on("tick", function() {
+              
+              model.force2.start();
+                            
+              //---------
+              node.call(updateNode);
+              
+              anchorNode.each(function(d, i) {
+                  
+                  if(i % 2 == 0) {
+                      d.x = d.node.label.x;
+                      d.y = d.node.label.y;
+                  } else {
+                      // get the bounding box
+                      var b = this.childNodes[1].getBBox();
+
+                      var diffX = d.x - d.node.label.x;
+                      var diffY = d.y - d.node.label.y;
+
+                      var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+
+                      var shiftX = b.width * (diffX - dist) / (dist * 2);
+                      shiftX = Math.max(-b.width, Math.min(0, shiftX));
+                      
+                      var shiftY = 5;
+                      
+                      // move the label of the current anchor
+                      this.childNodes[1].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+                  }
+              });
+              anchorNode.call(updateNode);
+              
+              link.call(updateLink);
+
+              anchorLink.call(updateLink);
+          });
+            ///                
+            }
+
+      }
+
+      // make it all go
+      controller.init();
+    });
+
+    
+  };
+
+  chart.width = function(value) {
+      if (!arguments.length) return config.width;
+      config.width = value;
+      return chart; // enable chaining
     };
 
-    count = count + 1;
-  };
-  result.nodes = makeSubNodesArr(visited, propname, nodes);
-  result.links = makeSubLinksArr(result.nodes, propname, JSON.parse(JSON.stringify(subLinks)));
-  console.log('result', result);
-  
-  return result;
+  chart.height = function(value) {
+        if (!arguments.length) return config.height;
+        config.height = value;
+        return chart; // enable chaining
+    };
+
+  chart.hops = function(value) {
+        if (!arguments.length) return config.hops;
+        config.hops = value;
+        return chart; // enable chaining
+    };
+
+  return chart;  
+
 };
+
+/*----------------------------------------------------------------------------*/
+
+d3.json("data/miserables.json", function(error, graph) {
+  if (error) throw error;
+
+  // Parse JSON into the correct format if needed
+
+  var chart = d3.grapSub()
+                .width(760)
+                .height(500);
+
+  d3.select("body")
+    .datum(graph)
+    .call(chart); 
+});
+

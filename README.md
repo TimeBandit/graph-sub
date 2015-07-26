@@ -32,3 +32,5 @@ Example bl.ock.s used in the development of this graph:
 [General Update Pattern, II](http://bl.ocks.org/mbostock/3808221)
 
 [General Update Pattern, III](http://bl.ocks.org/mbostock/3808234)
+
+[Animating Changes in Force Diagram](http://bl.ocks.org/ericcoopey/6c602d7cb14b25c179a4)
