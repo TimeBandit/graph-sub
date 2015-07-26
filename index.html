@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>graphSub</title>
+    <title>Animating Changes in Force Diagram</title>
+    <script src="http://d3js.org/d3.v3.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <style>
+        .link {
+            stroke: #2E2E2E;
+            stroke-width: 2px;
+        }
+
+        .node {
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+
+        .textClass {
+            stroke: #23232;
+            font-family: "Arial", "Liberation Sans", Arial, Helvetica, sans-serif;
+            font-weight: normal;
+
+            stroke-width: .1;
+            font-size: 1px;
+
+        }
+
+        #licensing {
+            fill: green;
+        }
+
+        .link.licensing {
+            stroke: green;
+        }
+    </style>
+</head>
+<body>
+<div class="ui-widget">
+  <label for="search">Search: </label>
+  <input id="search">
+</div>
+</body>
+<script src="static/js/graphSub.js"></script>
+</html>
