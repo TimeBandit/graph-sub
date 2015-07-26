@@ -20,7 +20,7 @@ if (!('xpush' in Array.prototype)) {
     };
 };
 
-d3.grapSub = function() {
+d3.graphSub = function() {
   
   var config = {
     width: 1000,
@@ -466,7 +466,7 @@ d3.json("data/miserables.json", function(error, graph) {
 
   // Parse JSON into the correct format if needed
 
-  var chart = d3.grapSub()
+  var chart = d3.graphSub()
                 .width(760)
                 .height(500);
 
