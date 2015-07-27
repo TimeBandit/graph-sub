@@ -171,7 +171,7 @@ d3.graphSub = function() {
 
           // first the nodes and anchors
           // extract subnet around 'd' with all nodes up to 2 hops away
-          this.getSubnet(this.findNodeIndex(nodeName, model.graph.nodes), 2);
+          this.getSubnet(this.findNodeIndex(nodeName, model.graph.nodes), config.hops);
           this.createAnchors();
           
           view.render();
@@ -224,7 +224,31 @@ d3.graphSub = function() {
                       .attr("markerHeight", 6)
                       .attr("orient", "auto")
                       .append("path")
-                          .attr("d", "M0,-5L10,0L0,5");
+                          .attr("d", "M0,-2L2,0L0,2");
+                          //"M0,-5L10,0L0,5"
+
+          // linear gradient for the lines
+          d3.select("defs")
+            .insert("linearGradient")
+            .attr("id", "linearGradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "100%")
+            .attr("spreadMethod", "pad");
+
+          d3.select("linearGradient")
+            .insert("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "grey")
+            .attr("stop-opacity", "1");
+
+          d3.select("linearGradient")
+            .insert("stop")
+            .attr("offset", "90%")
+            .attr("stop-color", "grey")
+            .attr("stop-opacity", "0");
+                
 
           // clear search box
           $("#search").val('');
@@ -251,9 +275,9 @@ d3.graphSub = function() {
           config.width = window.innerWidth; 
           config.height = window.innerHeight;
           
-          vis.attr("width", config.width).attr("height", config.height);
+          model.vis.attr("width", config.width).attr("height", config.height);
 
-          force.size([config.width, config.height]).resume();
+          model.force.size([config.width, config.height]).resume();
         },
 
         render: function() {
@@ -273,8 +297,10 @@ d3.graphSub = function() {
                   .attr("stroke-width", function (d) {
                       return d.value / 10;
                   })
+                  .attr("stroke", "url(#linearGradient)")
                   .attr("class", "link")
                   .attr("marker-end", "url(#suit)");
+                  //.attr("class", "link")
           
           // update
           link.append("title")
@@ -300,7 +326,7 @@ d3.graphSub = function() {
           // enter
           nodeEnter
                   .append("svg:circle")
-                  .attr("r", 5)
+                  .attr("r", 0)
                   .attr("id", function (d) {
                       return "Node;" + d.name;
                   })
@@ -468,7 +494,8 @@ d3.json("data/miserables.json", function(error, graph) {
 
   var chart = d3.graphSub()
                 .width(760)
-                .height(500);
+                .height(500)
+                .hops(2);
 
   d3.select("body")
     .datum(graph)
