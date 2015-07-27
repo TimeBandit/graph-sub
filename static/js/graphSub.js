@@ -240,14 +240,14 @@ d3.graphSub = function() {
           d3.select("linearGradient")
             .insert("stop")
             .attr("offset", "0%")
-            .attr("stop-color", "grey")
-            .attr("stop-opacity", "1");
+            .attr("stop-color", "#e1f7d5")
+            .attr("stop-opacity", "0");
 
           d3.select("linearGradient")
             .insert("stop")
             .attr("offset", "90%")
-            .attr("stop-color", "grey")
-            .attr("stop-opacity", "0");
+            .attr("stop-color", "#f1cbff")
+            .attr("stop-opacity", "1");
                 
 
           // clear search box
@@ -369,9 +369,10 @@ d3.graphSub = function() {
               .text(function(d, i) {
                   return i % 2 == 0 ? "" : d.node.label.name
               })
+              .attr("class", "textClass")
               .style("fill", "#555")
               .style("font-family", "Arial")
-              .style("font-size", 12);
+              .style("font-size", 20);
 
           // exit
           anchorNode.exit().remove();
@@ -380,7 +381,7 @@ d3.graphSub = function() {
           model.force
               .size([config.width, config.height])
               .charge(-3000)
-              .gravity(1)
+              .gravity(2)
               .linkDistance(50)
               .start();                
 
@@ -390,7 +391,7 @@ d3.graphSub = function() {
               .gravity(0)
               .linkDistance(0)
               .linkStrength(8)
-              .charge(-100)
+              .charge(-800)
               .start();
 
           //console.log('selection', anchorNode);
