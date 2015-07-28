@@ -158,7 +158,7 @@ d3.graphSub = function() {
           // graph refreshed onces after nodes is added then after links
           // prevents wild variations in graph render.
           model.linkStrings = []; // var to ensure links no repeated
-          console.log(this, d);
+          
           this.removeAllNodes(model.subNetNodes); // clears force.nodes()
           this.removeAllLinks(model.subNetLinks); // clears force.links()
           
@@ -218,13 +218,13 @@ d3.graphSub = function() {
                   .append("marker")
                       .attr("id", function(d) { return d; })
                       .attr("viewBox", "0 -5 10 10")
-                      .attr("refX", 15)
-                      .attr("refY", -0.5)
+                      .attr("refX", 5)
+                      .attr("refY", 0)
                       .attr("markerWidth", 6)
                       .attr("markerHeight", 6)
                       .attr("orient", "auto")
                       .append("path")
-                          .attr("d", "M0,-2L2,0L0,2");
+                          .attr("d", "M0,-1L5,0L0,1");
                           //"M0,-5L10,0L0,5"
 
           // linear gradient for the lines
@@ -240,16 +240,17 @@ d3.graphSub = function() {
           d3.select("linearGradient")
             .insert("stop")
             .attr("offset", "0%")
-            .attr("stop-color", "#e1f7d5")
+            .attr("stop-color", "grey")
             .attr("stop-opacity", "0");
 
           d3.select("linearGradient")
             .insert("stop")
-            .attr("offset", "90%")
-            .attr("stop-color", "#f1cbff")
+            .attr("offset", "100%")
+            .attr("stop-color", "grey")
             .attr("stop-opacity", "1");
                 
-
+          // female D54A5C
+          // male A2C1D5
           // clear search box
           $("#search").val('');
 
@@ -374,6 +375,19 @@ d3.graphSub = function() {
               .style("font-family", "Arial")
               .style("font-size", 20);
 
+          anchorNode.each(function(d, i) {
+            if(i % 2 > 0){
+              d3.select(this)
+                .insert("rect")
+                .attr("width", 20)
+                .attr("height", 20)
+                .attr("fill", "red")
+                .attr("opacity", "0.3");
+            };
+          });
+
+          
+
           // exit
           anchorNode.exit().remove();
 
@@ -381,7 +395,7 @@ d3.graphSub = function() {
           model.force
               .size([config.width, config.height])
               .charge(-3000)
-              .gravity(2)
+              .gravity(1)
               .linkDistance(50)
               .start();                
 
@@ -391,7 +405,7 @@ d3.graphSub = function() {
               .gravity(0)
               .linkDistance(0)
               .linkStrength(8)
-              .charge(-800)
+              .charge(-200)
               .start();
 
           //console.log('selection', anchorNode);
@@ -426,6 +440,7 @@ d3.graphSub = function() {
               anchorNode.each(function(d, i) {
                   
                   if(i % 2 == 0) {
+
                       d.x = d.node.label.x;
                       d.y = d.node.label.y;
                   } else {
