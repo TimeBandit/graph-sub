@@ -200,7 +200,7 @@ d3.graphSub = function() {
         init: function () {
           d3.select(window).on("resize", this.resize)
           
-          model.vis = d3.select(current_selection)
+          model.viz = d3.select(current_selection)
                       .append("svg:svg")
                       .attr("width", config.width)
                       .attr("height", config.height)
@@ -211,7 +211,7 @@ d3.graphSub = function() {
                       .append('svg:g');
 
           //Per-type markers, as they don't inherit styles.
-          model.vis.insert("defs")
+          model.viz.insert("defs")
               .selectAll("marker")
               .data(["suit", "licensing", "resolved"])
               .enter()
@@ -276,7 +276,7 @@ d3.graphSub = function() {
           config.width = window.innerWidth; 
           config.height = window.innerHeight;
           
-          model.vis.attr("width", config.width).attr("height", config.height);
+          model.viz.attr("width", config.width).attr("height", config.height);
 
           model.force.size([config.width, config.height]).resume();
         },
@@ -284,7 +284,7 @@ d3.graphSub = function() {
         render: function() {
 
           // join
-          var link = model.vis.selectAll("line")
+          var link = model.viz.selectAll("line")
                   .data(model.subNetLinks, function (d) {
                       return d.source.name + "-" + d.target.name;
                   });          
@@ -313,7 +313,7 @@ d3.graphSub = function() {
           link.exit().remove();
 
           // join
-          var node = model.vis.selectAll("g.node")
+          var node = model.viz.selectAll("g.node")
                   .data(model.subNetNodes, function (d) {
                       return d.name;
                   });
@@ -340,11 +340,11 @@ d3.graphSub = function() {
           // Force2 labels
           
           // join
-          var anchorLink = model.vis.selectAll("line.anchorLink")
+          var anchorLink = model.viz.selectAll("line.anchorLink")
                               .data(model.labelAnchorLinks);//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
 
           // join
-          var anchorNode = model.vis.selectAll("g.anchorNode")
+          var anchorNode = model.viz.selectAll("g.anchorNode")
                               .data(model.labelAnchors, function(d, i){
                                   return d.node.label.name + i;
                               });
@@ -361,8 +361,8 @@ d3.graphSub = function() {
           // enter
           anchorNodeEnter
               .append("svg:circle")
-              .attr("r", 0)
-              .style("fill", "#FFF");
+              .attr("r", 10)
+              .style("fill", "red");
 
           // enter
           anchorNodeEnter
@@ -375,16 +375,16 @@ d3.graphSub = function() {
               .style("font-family", "Arial")
               .style("font-size", 20);
 
-          anchorNode.each(function(d, i) {
-            if(i % 2 > 0){
-              d3.select(this)
-                .insert("rect")
-                .attr("width", 20)
-                .attr("height", 20)
-                .attr("fill", "red")
-                .attr("opacity", "0.3");
-            };
-          });
+          // anchorNode.each(function(d, i) {
+          //   if(i % 3 == 0){
+          //     d3.select(this)
+          //       .insert("rect")
+          //       .attr("width", 20)
+          //       .attr("height", 20)
+          //       .attr("fill", "red")
+          //       .attr("opacity", "0.3");
+          //   };
+          // });
 
           
 
@@ -444,6 +444,7 @@ d3.graphSub = function() {
                       d.x = d.node.label.x;
                       d.y = d.node.label.y;
                   } else {
+                    console.log(this.childNodes);
                       // get the bounding box
                       var b = this.childNodes[1].getBBox();
 
