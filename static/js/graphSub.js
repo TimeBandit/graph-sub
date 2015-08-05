@@ -15,8 +15,8 @@ if (!('xpush' in Array.prototype)) {
     Array.prototype.xpush = function(value){
         if(this.indexOf(value) === -1){
             this.push(value);
-        };
-        return this
+        }
+        return this;
     };
 };
 
@@ -31,6 +31,7 @@ d3.graphSub = function() {
   function chart(selection) {
     selection.each(function (d, i) {
       
+      // DOM to which to attach the vizualization
       var current_selection = this;
 
       var model = {};
@@ -99,17 +100,19 @@ d3.graphSub = function() {
               };
 
               model.labelAnchors.push({
-                  node : n
+                  node : n,
+                  type: "tail"
               });
               model.labelAnchors.push({
-                  node : n
+                  node : n,
+                  type: "head"
               });
             };
           },
 
         createAnchorLinks: function(){
           for (var i = 0; i < model.subNetNodes.length; i++) {
-            // join nodes in pairs
+            // nodes are connected in pairs
             model.labelAnchorLinks.push({
               source : i * 2,
               target : i * 2 + 1,
@@ -174,7 +177,7 @@ d3.graphSub = function() {
           this.getSubnet(this.findNodeIndex(nodeName, model.graph.nodes), config.hops);
           this.createAnchors();
           
-          view.render();
+            view.render();
           
 
           // now the links and anchor links
@@ -346,7 +349,8 @@ d3.graphSub = function() {
           // join
           var anchorNode = model.viz.selectAll("g.anchorNode")
                               .data(model.labelAnchors, function(d, i){
-                                  return d.node.label.name + i;
+                                  //console.log(d.node.label.name + d.type);
+                                  return d.node.label.name + d.type;
                               });
 
           // enter
@@ -361,7 +365,7 @@ d3.graphSub = function() {
           // enter
           anchorNodeEnter
               .append("svg:circle")
-              .attr("r", 10)
+              .attr("r", 0)
               .style("fill", "red");
 
           // enter
@@ -375,16 +379,28 @@ d3.graphSub = function() {
               .style("font-family", "Arial")
               .style("font-size", 20);
 
-          // anchorNode.each(function(d, i) {
-          //   if(i % 3 == 0){
-          //     d3.select(this)
-          //       .insert("rect")
-          //       .attr("width", 20)
-          //       .attr("height", 20)
-          //       .attr("fill", "red")
-          //       .attr("opacity", "0.3");
-          //   };
-          // });
+          // add coloured box around text
+          anchorNode.each(function(d, i) {
+            if(i % 2 != 0){
+              // prevents two rects being added
+              // due to render being called twice in 
+              // click func.
+              //console.log(this.childNodes[2]);
+              var textElem = this.childNodes[1].getBBox();
+              //console.log(textElem);
+              if (this.childNodes.length === 2) {
+                d3.select(this)
+                .insert("rect")
+                .attr("width", textElem.width)
+                .attr("height", textElem.height)
+                .attr("y", textElem.y)
+                .attr("x", textElem.x)
+                .attr("fill", "red")
+                .attr("opacity", "0.3");  
+              };
+              
+            };
+          });
 
           
 
@@ -444,7 +460,6 @@ d3.graphSub = function() {
                       d.x = d.node.label.x;
                       d.y = d.node.label.y;
                   } else {
-                    console.log(this.childNodes);
                       // get the bounding box
                       var b = this.childNodes[1].getBBox();
 
@@ -460,6 +475,8 @@ d3.graphSub = function() {
                       
                       // move the label of the current anchor
                       this.childNodes[1].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+                      // move the coloured box of the current anchor
+                      this.childNodes[2].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
                   }
               });
               anchorNode.call(updateNode);
