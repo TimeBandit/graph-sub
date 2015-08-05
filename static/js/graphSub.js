@@ -521,7 +521,7 @@ d3.graphSub = function() {
 
 /*----------------------------------------------------------------------------*/
 
-d3.json("data/miserables.json", function(error, graph) {
+d3.json("data/ramzaneh.json", function(error, graph) {
   if (error) throw error;
 
   // Parse JSON into the correct format if needed
@@ -530,9 +530,12 @@ d3.json("data/miserables.json", function(error, graph) {
                 .width(760)
                 .height(500)
                 .hops(2);
+  //console.log(graph);
+  
+  var data = g2j4d3(graph);
 
   d3.select("body")
-    .datum(graph)
+    .datum(data)
     .call(chart); 
 });
 
