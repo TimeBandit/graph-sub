@@ -530,7 +530,7 @@ d3.json("data/ramzaneh.json", function(error, graph) {
                 .width(760)
                 .height(500)
                 .hops(2);
-  //console.log(graph);
+  console.log(graph);
   
   var data = g2j4d3(graph);
 
@@ -538,4 +538,14 @@ d3.json("data/ramzaneh.json", function(error, graph) {
     .datum(data)
     .call(chart); 
 });
+
+// d3.json("data/ramzaneh.json", function(error, graph) {
+//   if (error) throw error;
+
+  // Parse JSON into the correct format if needed
+
+  //console.log(graph);
+  
+  // var data = g2j4d3(graph);
+//});
 

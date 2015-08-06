@@ -3,44 +3,63 @@
 // D3 JSON format
 
 var g2j4d3 = function g2j4d3 (data) {
-      // initialize nodes and edges
-      var nodes = [];
-      var links = [];
+      
+      var _oldNodes = data.nodes;
+      var _newNodes = []
+      var _nodes = []
+      var _links = [];
 
-      // build index lookup based on the node id
-      var buildIndex = function buildIndex(nodeArray){
-            var temp = {};
-            for (var i = 0; i< nodeArray.length; i++){
-                  // store as {id, index}
-                  temp[nodeArray[i].id] = i;                   
-            };
-            console.log('Finished building index');
-            return temp;
-      };
-
-      // helper function to build the link table
-      // for each edge source and target id
-      // find the nodes position in the node array
-      function buildLinks(nodesArray, edgesArray){
-      // object mapping node id to its index in the node array
-      // use the source and target label to get pos in node array
-            var index = buildIndex(nodesArray);
-            for (var i = 0; i< edgesArray.length; i++) {
-                  links.push({
-                        source : index[edgesArray[i].source],
-                        target : index[edgesArray[i].target],
-                        type : "label" in edgesArray[i] ? edgesArray[i].label : "null"
+      // build nodes with miserables.json naming conventions
+      var buildnewNodes = function buildnewNodes (nodes) {
+            for (var i = 0; i < nodes.length; i++) {
+                  var node = nodes[i]
+                  _newNodes.push({
+                        id: node.id,
+                        name: node.label,
+                        attributes: node.attributes
                   });
             };
+            console.log('Finished building new nodes');
+      }
+
+      // build index lookup based on the node id
+      var buildIndex = function buildIndex(nodes){
+            //console.log(nodes, nodeArray)
+            var index = {};
+            for (var i = 0; i< nodes.length; i++){
+                  // store as {id, index}
+                  index[nodes[i].id] = i;                   
+            };
+            console.log('Finished building index');
+            return index;
       };
 
-      nodes = data.nodes;
-      console.log(data);
-      buildLinks(nodes, data.edges);
+      function buildLinks(nodes, links){
+      // mapping node id to index in the node array
+      // source and target label used to get pos in node array
+            
+            var index = buildIndex(nodes);
+
+            for (var i = 0; i< links.length; i++) {
+                  var   sourceId = links[i].source,
+                        targetId = links[i].target;
+                  
+                  _links.push({
+                        source : index[sourceId],
+                        target : index[targetId],
+                        type : "label" in links[i] ? links[i].label : "null"
+                  });
+            };
+            console.log('All Done');
+      };
+
+      buildnewNodes(_oldNodes);
+      buildLinks(_newNodes, data.edges);
+      //console.log(_links);
 
       return {
-            nodes: nodes,
-            links: links
+            nodes: _newNodes,
+            links: _links
       };
 }
 
