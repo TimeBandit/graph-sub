@@ -194,6 +194,9 @@ d3.graphSub = function() {
           this.createAnchorLinks();
           
           view.render();
+
+          console.log(JSON.stringify(model.subNetNodes));
+          console.log(JSON.stringify(model.subNetLinks));
         }
         
       };
@@ -344,7 +347,7 @@ d3.graphSub = function() {
           
           // join
           var anchorLink = model.viz.selectAll("line.anchorLink")
-                              .data(model.labelAnchorLinks);//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+                              .data(model.labelAnchorLinks).enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
 
           // join
           var anchorNode = model.viz.selectAll("g.anchorNode")
@@ -365,7 +368,7 @@ d3.graphSub = function() {
           // enter
           anchorNodeEnter
               .append("svg:circle")
-              .attr("r", 0)
+              .attr("r", 3)
               .style("fill", "red");
 
           // enter
@@ -529,7 +532,7 @@ d3.json("data/ramzaneh.json", function(error, graph) {
   var chart = d3.graphSub()
                 .width(760)
                 .height(500)
-                .hops(2);
+                .hops(1);
   console.log(graph);
   
   var data = g2j4d3(graph);
