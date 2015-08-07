@@ -195,8 +195,8 @@ d3.graphSub = function() {
           
           view.render();
 
-          console.log(JSON.stringify(model.subNetNodes));
-          console.log(JSON.stringify(model.subNetLinks));
+          console.log(model.subNetNodes);
+          console.log(model.subNetLinks);
         }
         
       };
@@ -292,14 +292,15 @@ d3.graphSub = function() {
           // join
           var link = model.viz.selectAll("line")
                   .data(model.subNetLinks, function (d) {
-                      return d.source.name + "-" + d.target.name;
+                      //return d.source.name + "-" + d.target.name;
+                      return d.source.id + "-" + d.target.id;
                   });          
 
           // enter
           link.enter().insert("line", "g")
                   .attr("id", function (d) {
-                      return d.source.name + "-" + d.target
-                      .name;
+                      return d.source.name + "-" + d.target.name;
+                      //return d.source.id + "-" + d.target.id;
                   })
                   .attr("stroke-width", function (d) {
                       return d.value / 10;
@@ -321,7 +322,7 @@ d3.graphSub = function() {
           // join
           var node = model.viz.selectAll("g.node")
                   .data(model.subNetNodes, function (d) {
-                      return d.name;
+                      return d.id;
                   });
 
           // enter
@@ -352,8 +353,8 @@ d3.graphSub = function() {
           // join
           var anchorNode = model.viz.selectAll("g.anchorNode")
                               .data(model.labelAnchors, function(d, i){
-                                  //console.log(d.node.label.name + d.type);
-                                  return d.node.label.name + d.type;
+                                  //return d.node.label.name + d.type;
+                                  return d.node.label.id + d.type;
                               });
 
           // enter
@@ -532,8 +533,8 @@ d3.json("data/ramzaneh.json", function(error, graph) {
   var chart = d3.graphSub()
                 .width(760)
                 .height(500)
-                .hops(1);
-  console.log(graph);
+                .hops(2);
+  //console.log(graph);
   
   var data = g2j4d3(graph);
 

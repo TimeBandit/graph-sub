@@ -14,6 +14,7 @@ var g2j4d3 = function g2j4d3 (data) {
             for (var i = 0; i < nodes.length; i++) {
                   var node = nodes[i]
                   _newNodes.push({
+                        posIndex: i,
                         id: node.id,
                         name: node.label,
                         attributes: node.attributes
