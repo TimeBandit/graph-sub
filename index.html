@@ -60,29 +60,29 @@
 Your data must follow the format given in the example data-set. This can be found in /data/miserables.json
 More information on d3s' force layouts can be found <a href="https://github.com/mbostock/d3/wiki/Force-Layout#force">here</a>.</p>
 
-<pre><code>`/*----------------------------------------------------------------------------`
-`The code example below:`
-`1. Loads the JSON data.`
-`2. Sets the width to 760px. `
-`3. Set the height to 500px.`
-`4. Displays all nodes within 2 hops of the selected node.`
-`5. Attaches the chart to the DOM element with id #chart`
-`*/`
+<pre><code>/*----------------------------------------------------------------------------`
+The code example below:
+1. Loads the JSON data.
+2. Sets the width to 760px.
+3. Set the height to 500px.
+4. Displays all nodes within 2 hops of the selected node.
+5. Attaches the chart to the DOM element with id #chart
+*/
 
-`d3.json("data/miserables.json", function(error, graph) {`
-    `if (error) throw error;`
+d3.json("data/miserables.json", function(error, graph) {
+    if (error) throw error;
 
-    `// Parse JSON into the correct format if needed`
+    // Parse JSON into the correct format if needed
 
-    `var chart = d3.graphSub()`
-                  `.width(760)`
-                  `.height(500)`
-                  `.hops(2);`
+    var chart = d3.graphSub()
+                  .width(760)
+                  .height(500)
+                  .hops(2);
 
-    `d3.select("#chart")`
-      `.datum(graph)`
-      `.call(chart); `
-`}); `
+    d3.select("#chart")
+      .datum(graph)
+      .call(chart);
+});
 </code></pre>
 
 <p>Want to contribute a bug fix or enhancement; then feel free to clone the repository and make a pull request.</p>
