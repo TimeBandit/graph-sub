@@ -40,22 +40,26 @@
 
 <p>graphSub is a re-usable force directed chart for displaying connected data. Written in Javascript with the <a href="http://d3js.org">d3js</a> library. It has some cool features rolled in.</p>
 
-<p>Featues include:</p>
+<h3>
+<a id="featues-include" class="anchor" href="#featues-include" aria-hidden="true"><span class="octicon octicon-link"></span></a>Featues include:</h3>
 
 <ul>
 <li>Display graph subsets. Given a data-set with 1000+ nodes, displaying all nodes at once can clutter your  screen. With graphSub you can display only a subset of you data-set whilst being able to navigate through through the entire data-set with mouse clicks.</li>
 <li>The search box feature allows you to quickly locate the node that you are interested in.</li>
-<li>None over lapping labels means that node labels do not obscure each other.</li>
+<li>None over-lapping labels means that node labels do not obscure each other.</li>
 <li>Works on touch screens.</li>
 <li>The display automatically resizes upon browser window resizing.</li>
+<li>The code uses an MVC architecture making development easier to manage.</li>
 </ul>
 
-<p>Instructions:</p>
+<h3>
+<a id="instructions" class="anchor" href="#instructions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Instructions:</h3>
 
 <p>The following code can be found at the end of static/js/graphsub.js please modify it to suit your needs.
 Your data must follow the format given in the example data-set. This can be found in /data/miserables.json
-More information on d3s' force layout can be found <a href="https://github.com/mbostock/d3/wiki/Force-Layout#force">here</a>.
-<code>/*----------------------------------------------------------------------------</code>
+More information on d3s' force layouts can be found <a href="https://github.com/mbostock/d3/wiki/Force-Layout#force">here</a>.</p>
+
+<p><code>/*----------------------------------------------------------------------------</code>
 <code>The code example below:</code>
 <code>1. Loads the JSON data.</code>
 <code>2. Sets the width to 760px.</code>
