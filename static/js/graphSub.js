@@ -1,4 +1,4 @@
-/* test graph - mothers are on the left hand side */
+/* test data in data/fm.json */
 /*
    (a)---------(b)  (c)---------(d)
        |  |  |           |  |
@@ -40,7 +40,6 @@ d3.graphSub = function() {
         
         init: function() {
           model.graph = d;
-          model.color = d3.scale.category10();
           model.force = d3.layout.force();
           model.force2 = d3.layout.force();
           model.subNetNodes = model.force.nodes();
@@ -57,8 +56,16 @@ d3.graphSub = function() {
           
           view.init();
 
-          controller.getSubnet(0, 1)
+          this.getSubnet(0, 1)
           this.click(model.subNetNodes[0]);
+        },
+
+        graphNodes: function () {
+          return model.graph.nodes;
+        },
+
+        graphLinks: function () {
+          return model.graph.links;
         },
 
         // add link to the layout
@@ -195,18 +202,20 @@ d3.graphSub = function() {
           
           view.render();
 
-          console.log(JSON.stringify(model.subNetNodes));
-          console.log(JSON.stringify(model.subNetLinks));
+          // console.log(JSON.stringify(model.subNetNodes));
+          // console.log(JSON.stringify(model.subNetLinks));
         }
         
       };
 
       var view = {
-        
+
         init: function () {
           d3.select(window).on("resize", this.resize)
+
+          this.color = d3.scale.category10();
           
-          model.viz = d3.select(current_selection)
+          this.viz = d3.select(current_selection)
                       .append("svg:svg")
                       .attr("width", config.width)
                       .attr("height", config.height)
@@ -217,7 +226,7 @@ d3.graphSub = function() {
                       .append('svg:g');
 
           //Per-type markers, as they don't inherit styles.
-          model.viz.insert("defs")
+          this.viz.insert("defs")
               .selectAll("marker")
               .data(["suit", "licensing", "resolved"])
               .enter()
@@ -267,7 +276,7 @@ d3.graphSub = function() {
               select: function(event, ui) {
                   event.preventDefault();
                   //console.log(+ui.item.value);
-                  controller.click(model.graph.nodes[+ui.item.value], +ui.item.value);
+                  controller.click(controller.graphNodes()[+ui.item.value], +ui.item.value);
                   $("#search").val(ui.item.label);
               },
               
@@ -279,18 +288,16 @@ d3.graphSub = function() {
         },
 
         resize: function() {
-          config.width = window.innerWidth; 
-          config.height = window.innerHeight;
+          x = window.innerWidth || e.clientWidth || g.clientWidth;
+          y = window.innerHeight|| e.clientHeight|| g.clientHeight;
           
-          model.viz.attr("width", config.width).attr("height", config.height);
-
-          model.force.size([config.width, config.height]).resume();
+          d3.select("svg").attr("width", x).attr("height", y);
         },
 
         render: function() {
 
           // join
-          var link = model.viz.selectAll("line")
+          var link = view.viz.selectAll("line")
                   .data(model.subNetLinks, function (d) {
                       return d.source.name + "-" + d.target.name;
                   });          
@@ -319,7 +326,7 @@ d3.graphSub = function() {
           link.exit().remove();
 
           // join
-          var node = model.viz.selectAll("g.node")
+          var node = this.viz.selectAll("g.node")
                   .data(model.subNetNodes, function (d) {
                       return d.name;
                   });
@@ -338,7 +345,7 @@ d3.graphSub = function() {
                       return "Node;" + d.name;
                   })
                   .attr("class", "nodeStrokeClass")
-                  .attr("fill", function(d) { return model.color(d.group); });
+                  .attr("fill", function(d) { return view.color(d.group); });
 
           // exit
           node.exit().remove();
@@ -346,11 +353,11 @@ d3.graphSub = function() {
           // Force2 labels
           
           // join
-          var anchorLink = model.viz.selectAll("line.anchorLink")
-                              .data(model.labelAnchorLinks).enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+          var anchorLink = this.viz.selectAll("line.anchorLink")
+                              .data(model.labelAnchorLinks);//.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
 
           // join
-          var anchorNode = model.viz.selectAll("g.anchorNode")
+          var anchorNode = this.viz.selectAll("g.anchorNode")
                               .data(model.labelAnchors, function(d, i){
                                   //console.log(d.node.label.name + d.type);
                                   return d.node.label.name + d.type;
@@ -368,7 +375,7 @@ d3.graphSub = function() {
           // enter
           anchorNodeEnter
               .append("svg:circle")
-              .attr("r", 3)
+              .attr("r", 0)
               .style("fill", "red");
 
           // enter
@@ -398,13 +405,12 @@ d3.graphSub = function() {
                 .attr("height", textElem.height)
                 .attr("y", textElem.y)
                 .attr("x", textElem.x)
-                .attr("fill", "red")
+                .attr("fill", function(d) { return view.color(d.node.label.group); })
                 .attr("opacity", "0.3");  
               };
               
             };
           });
-
           
 
           // exit
@@ -522,9 +528,15 @@ d3.graphSub = function() {
 
 };
 
-/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------
+The code example below:
+1. loads the JSON data.
+2. Sets the width to 760px. 
+3. Set the height to 500px.
+4. Attaches the cahrt to the DOM element with id #chart
+*/
 
-d3.json("data/ramzaneh.json", function(error, graph) {
+d3.json("data/miserables.json", function(error, graph) {
   if (error) throw error;
 
   // Parse JSON into the correct format if needed
@@ -532,23 +544,10 @@ d3.json("data/ramzaneh.json", function(error, graph) {
   var chart = d3.graphSub()
                 .width(760)
                 .height(500)
-                .hops(1);
-  console.log(graph);
-  
-  var data = g2j4d3(graph);
-
-  d3.select("body")
-    .datum(data)
-    .call(chart); 
-});
-
-// d3.json("data/ramzaneh.json", function(error, graph) {
-//   if (error) throw error;
-
-  // Parse JSON into the correct format if needed
-
+                .hops(2);
   //console.log(graph);
   
-  // var data = g2j4d3(graph);
-//});
-
+  d3.select("#chart")
+    .datum(graph)
+    .call(chart); 
+});
