@@ -73,19 +73,21 @@ More information on d3s' force layouts can be found <a href="https://github.com/
 <p><code>*/</code></p>
 
 <p><code>d3.json("data/miserables.json", function(error, graph) {</code>
-  <code>if (error) throw error;</code></p>
+    <code>if (error) throw error;</code></p>
 
-<p><code>// Parse JSON into the correct format if needed</code></p>
+<pre><code>`// Parse JSON into the correct format if needed`
 
-<p><code>var chart = d3.graphSub()</code>
-                <code>.width(760)</code>
-                <code>.height(500)</code>
-                <code>.hops(2);</code></p>
+`var chart = d3.graphSub()`
+              `.width(760)`
+              `.height(500)`
+              `.hops(2);`
 
-<p><code>d3.select("#chart")</code>
-    <code>.datum(graph)</code>
-    <code>.call(chart);</code>
-<code>});</code></p>
+`d3.select("#chart")`
+  `.datum(graph)`
+  `.call(chart); `
+</code></pre>
+
+<p><code>});</code></p>
 
 <p>Example bl.ock.s used in the development of this graph:</p>
 
