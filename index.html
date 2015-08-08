@@ -16,7 +16,7 @@
     <div class="wrapper">
       <header>
         <h1>Graphsub</h1>
-        <p>A Javascript module for d3js. It can be used to extract a subset of a connected force-directed-graph. The resultant graph will be centered on the desired node.</p>
+        <p>A Javascript plugin for d3js. A resubale force directed graph with some useful features rolled in.</p>
 
         <p class="view"><a href="https://github.com/TimeBandit/graphSub">View the Project on GitHub <small>TimeBandit/graphSub</small></a></p>
 
@@ -38,19 +38,45 @@
 
 </pre>
 
-<p>graphSub is a re-usable D3 force directed graph for displaying
-subsets of a much larger graph. This has the benefits of presenting
-a graph which is easier to understand and navigable whilst still 
-giving access to the entire dataset.</p>
+<p>graphSub is a re-usable force directed chart for displaying connected data. Written in Javascript with the <a href="http://d3js.org">d3js</a> library. It has some cool features rolled in.</p>
 
 <p>Featues include:</p>
 
 <ul>
-<li>None over lapping labels.</li>
-<li>You can configure how wide the subset is.</li>
-<li>Clickable nodes which redraw the graph centered on the clicked node.</li>
-<li>Smooth transitions which fade in/out only the new nodes and links. </li>
+<li>Display graph subsets. Given a data-set with 1000+ nodes, displaying all nodes at once can clutter your  screen. With graphSub you can display only a subset of you data-set whilst being able to navigate through through the entire data-set with mouse clicks.</li>
+<li>The search box feature allows you to quickly locate the node that you are interested in.</li>
+<li>None over lapping labels means that node labels do not obscure each other.</li>
+<li>Works on touch screens.</li>
+<li>The display automatically resizes upon browser window resizing.</li>
 </ul>
+
+<p>Instructions:</p>
+
+<p>The following code can be found at the end of static/js/graphsub.js please modify it to suit your needs.
+Your data must follow the format given in the example data-set. This can be found in /data/miserables.json
+More information on d3s' force layout can be found <a href="https://github.com/mbostock/d3/wiki/Force-Layout#force">here</a>.
+/*----------------------------------------------------------------------------
+The code example below:
+1. Loads the JSON data.
+2. Sets the width to 760px. 
+3. Set the height to 500px.
+4. Attaches the chart to the DOM element with id #chart
+*/</p>
+
+<p><code>d3.json("data/miserables.json", function(error, graph) {</code>
+  <code>if (error) throw error;</code></p>
+
+<p><code>// Parse JSON into the correct format if needed</code></p>
+
+<p><code>var chart = d3.graphSub()</code>
+                <code>.width(760)</code>
+                <code>.height(500)</code>
+                <code>.hops(2);</code></p>
+
+<p><code>d3.select("#chart")</code>
+    <code>.datum(graph)</code>
+    <code>.call(chart);</code>
+<code>});</code></p>
 
 <p>Example bl.ock.s used in the development of this graph:</p>
 
