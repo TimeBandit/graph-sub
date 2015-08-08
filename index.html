@@ -48,8 +48,8 @@
 <li>The search box feature allows you to quickly locate the node that you are interested in.</li>
 <li>None over-lapping labels means that node labels do not obscure each other.</li>
 <li>Works on touch screens.</li>
-<li>The responsive resizes upon a browser resize.</li>
-<li>The code uses an MVC architecture making development easier to manage.</li>
+<li>The responsive chart resizes upon a browser resize.</li>
+<li>The code uses an MVC architecture, making future development easier to manage.</li>
 <li>More features to be added....</li>
 </ul>
 
@@ -65,7 +65,8 @@ More information on d3s' force layouts can be found <a href="https://github.com/
 `1. Loads the JSON data.`
 `2. Sets the width to 760px. `
 `3. Set the height to 500px.`
-`4. Attaches the chart to the DOM element with id #chart`
+`4. Displays all nodes within 2 hops of the selected node.`
+`5. Attaches the chart to the DOM element with id #chart`
 `*/`
 
 `d3.json("data/miserables.json", function(error, graph) {`
