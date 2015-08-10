@@ -311,10 +311,11 @@ d3.graphSub = function() {
                   .attr("stroke-width", function (d) {
                       return d.value / 10;
                   })
-                  .attr("stroke", "url(#linearGradient)")
+                  .attr("stroke", "grey")
+                  .attr("opacity", "0.5")
                   .attr("class", "link")
                   .attr("marker-end", "url(#suit)");
-                  //.attr("class", "link")
+                  //.attr("stroke", "url(#linearGradient)")
           
           // update
           link.append("title")
