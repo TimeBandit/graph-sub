@@ -240,7 +240,7 @@ d3.graphSub = function() {
                       .attr("orient", "auto")
                       .append("path")
                           .attr("d", "M0,-1L5,0L0,1");
-                          //"M0,-5L10,0L0,5"
+                          //.attr("M0,-5L10,0L0,5");
 
           // linear gradient for the lines
           d3.select("defs")
@@ -386,7 +386,7 @@ d3.graphSub = function() {
                   return i % 2 == 0 ? "" : d.node.label.name
               })
               .attr("class", "textClass")
-              .style("fill", "#555")
+              .style("fill", "black")
               .style("font-family", "Arial")
               .style("font-size", 20);
 
@@ -401,7 +401,7 @@ d3.graphSub = function() {
               //console.log(textElem);
               if (this.childNodes.length === 2) {
                 d3.select(this)
-                .insert("rect")
+                .insert("rect", "text")
                 .attr("width", textElem.width)
                 .attr("height", textElem.height)
                 .attr("y", textElem.y)
