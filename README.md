@@ -8,16 +8,51 @@
 
 </pre>
 
-graphSub is a re-usable D3 force directed graph for displaying
-subsets of a much larger graph. This has the benefits of presenting
-a graph which is easier to understand and navigable whilst still 
-giving access to the entire dataset.
+graphSub is a re-usable force directed chart for displaying connected data. Written in Javascript with the [d3js](http://d3js.org) library. It has some cool features rolled in.
 
-Featues include:
-* None over lapping labels.
-* You can configure how wide the subset is.
-* Clickable nodes which redraw the graph centered on the clicked node.
-* Smooth transitions which fade in/out only the new nodes and links. 
+### Featues include:
+* Display graph subsets. Given a data-set with 1000+ nodes, displaying all nodes at once can clutter your  screen. With graphSub you can display only a subset of your data-set whilst being able to navigate through the entire data-set with mouse clicks.
+* The search box feature allows you to quickly locate the node that you are interested in.
+* None over-lapping labels means that node labels do not obscure each other.
+* Works on touch screens.
+* The responsive chart resizes upon a browser resize.
+* The code uses an MVC architecture, making future development easier to manage.
+* More features to be added....
+
+### Instructions:
+
+The following code can be found at the end of static/js/graphsub.js please modify it to suit your needs.
+Your data must follow the format given in the example data-set. This can be found in /data/miserables.json
+More information on d3s' force layouts can be found [here](https://github.com/mbostock/d3/wiki/Force-Layout#force).
+
+
+    /*----------------------------------------------------------------------------`
+    The code example below:
+    1. Loads the JSON data.
+    2. Sets the width to 760px.
+    3. Set the height to 500px.
+    4. Displays all nodes within 2 hops of the selected node.
+    5. Attaches the chart to the DOM element with id #chart
+    */
+
+    d3.json("data/miserables.json", function(error, graph) {
+        if (error) throw error;
+
+        // Parse JSON into the correct format if needed
+
+        var chart = d3.graphSub()
+                      .width(760)
+                      .height(500)
+                      .hops(2);
+  
+        d3.select("#chart")
+          .datum(graph)
+          .call(chart);
+    });
+
+Want to contribute a bug fix or enhancement; then feel free to clone the repository and make a pull request.
+
+****A working example can be found [here](http://bl.ocks.org/TimeBandit/6460e2ba3792385b2754).****
 
 Example bl.ock.s used in the development of this graph:
 
