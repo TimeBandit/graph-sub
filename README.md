@@ -52,7 +52,7 @@ More information on d3s' force layouts can be found [here](https://github.com/mb
 
 Want to contribute a bug fix or enhancement; then feel free to clone the repository and make a pull request.
 
-****A working example can be found [here](http://bl.ocks.org/TimeBandit/6460e2ba3792385b2754).****
+****A working example can be seen by downloading the repo and opening index.html****
 
 Example bl.ock.s used in the development of this graph:
 
